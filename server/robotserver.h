@@ -29,8 +29,8 @@ struct robot {
   /* info on what was done... */
 };
 
-struct robot **all_robots;
-int max_robots;
+extern struct robot **all_robots;
+extern int max_robots;
 
 /* Interface from networking code to game logic.  */
 

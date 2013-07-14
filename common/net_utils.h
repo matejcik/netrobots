@@ -9,7 +9,7 @@
 
 #define MAX(a,b) a > b ? a : b
 
-int debug;
+extern int debug;
 
 /* to pass the ***argv pass &argv where argv is an array of strings */ 
 int str_to_argv (char *str, char ***argv);

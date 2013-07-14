@@ -24,7 +24,7 @@ int current_robots = 0;
 struct pollfd *fds;
 
 extern int debug;
-extern int max_robots;
+int max_robots;
 
 int max_cycles;
 int current_cycles = 0;
