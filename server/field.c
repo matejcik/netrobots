@@ -148,70 +148,11 @@ draw_radar(cairo_t *cr, double direction)
 }
 
 /*
- *draws the name and a health bar for every robot (maybe in the future also the reloading animation
+ *draws a robot with a given parameters
  */
 void
-draw_stats(cairo_t *cr, struct robot **all)
-{
-	int i;
-	int space = 50;
-	cairo_pattern_t *pat;
-
-	cairo_save (cr);
-	cairo_translate (cr, 600, 0);
-	
-	cairo_set_source_rgba(cr, 0.5, 0.5, 0.5, 0.2);
-	cairo_rectangle(cr, 0, 0, 120, 540);
-	cairo_fill(cr);
-
-	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
-			       CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size(cr, 13.0);
-	pat = cairo_pattern_create_linear(100.0, 0.0,  0.0, 0.0);
-	cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);
-	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
-
-	for(i = 0; i < max_robots; i++){
-		
-		/* display the name of the robot*/
-		cairo_move_to (cr, 10.0, 15.0+i*space);		
-		cairo_show_text (cr, all[i]->name);
-		
-		/* line with gradient from red to green*/
-		cairo_move_to (cr, 10, 25+i*space);
-		cairo_set_line_width (cr, 30);
-		cairo_line_to (cr, 110, 25+i*space);
-		cairo_set_source (cr, pat);
-		cairo_stroke (cr);
-		
-		/*black line on top of the colored one*/
-		cairo_move_to (cr, 10, 25+i*space);
-		cairo_set_line_width (cr, 24);
-		cairo_set_source_rgba (cr, 0, 0, 0, 0.5);
-		cairo_line_to (cr, 110 - all[i]->damage, 25+i*space);
-		cairo_stroke (cr);
-		
-		/*reloading animation goes here*/
-		
-		
-		/*separation line between the different robots*/
-		cairo_move_to (cr, 20, 45+i*space);
-		cairo_set_line_width (cr, 4);
-		cairo_set_source_rgb (cr, all[i]->color[0], all[i]->color[1], all[i]->color[2]);
-		cairo_line_to (cr, 100, 45+i*space);
-		cairo_stroke (cr);
-		
-	}
-	cairo_pattern_destroy (pat);
-	cairo_restore (cr);
-}
-
-/*
- *draws a robot with a given size, using the various parameters(orientation, position,..)
- *from the robot struct
- */
-void
-draw_robot(cairo_t *cr, struct robot *myRobot, double size)
+_draw_robot(cairo_t *cr, double x, double y, int degree, int cannon_degree,
+	    int radar_degree, float *color, double size)
 {
 	double x1=-70, y1=-30,
 		y2=10,
@@ -222,12 +163,12 @@ draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 		px4=70, py4=10;
 	
 	cairo_save(cr);
-	cairo_translate(cr, myRobot->x, myRobot->y);
+	cairo_translate(cr, x, y);
 	cairo_scale(cr, size, size);
 	cairo_save(cr);
-	cairo_rotate(cr, degtorad(90+myRobot->degree));
-	
-	cairo_set_source_rgba (cr, myRobot->color[0], myRobot->color[1], myRobot->color[2], 0.6);
+	cairo_rotate(cr, degtorad(90+degree));
+
+	cairo_set_source_rgba (cr, color[0], color[1], color[2], 0.6);
 	cairo_set_line_width (cr, 2);
 	cairo_move_to (cr,x1,y1);   
 	cairo_line_to (cr,x1,y2);
@@ -244,13 +185,84 @@ draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 	
 	cairo_stroke (cr);
 	cairo_restore(cr); /* pop rotate */
-	draw_cannon(cr, degtorad(270+myRobot->cannon_degree));
-	draw_radar(cr, degtorad(270+myRobot->radar_degree));
+	draw_cannon(cr, degtorad(270+cannon_degree));
+	draw_radar(cr, degtorad(270+radar_degree));
 	cairo_restore(cr); /* pop translate/scale */
+}
+
+/*
+ *draws a robot with a given size, using the various parameters(orientation, position,..)
+ *from the robot struct
+ */
+void
+draw_robot(cairo_t *cr, struct robot *myRobot, double size)
+{
+	_draw_robot(cr, myRobot->x, myRobot->y, myRobot->degree, myRobot->cannon_degree,
+		    myRobot->radar_degree, myRobot->color, size);
 	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
 		       myRobot->x, myRobot->y);
 	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
 		       myRobot->x, myRobot->y);
+}
+
+/*
+ *draws the name and a health bar for every robot (maybe in the future also the reloading animation
+ */
+void
+draw_stats(cairo_t *cr, struct robot **all)
+{
+	int i;
+	int space = 25;
+	cairo_pattern_t *pat;
+	cairo_text_extents_t ext;
+
+	cairo_save(cr);
+	cairo_translate(cr, 600, 0);
+
+	cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+	cairo_rectangle(cr, 0, 0, 120, 540);
+	cairo_fill(cr);
+
+	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+			       CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size(cr, 13.0);
+	pat = cairo_pattern_create_linear(80, 0, 0, 0);
+	cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);
+	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
+
+	for(i = 0; i < max_robots; i++){
+		_draw_robot(cr, 15, 16 + i * space, 0, 0, 0, all[i]->color, 0.15);
+
+		/* rectangle around life bar */
+		cairo_rectangle(cr, 34, 6 + i * space, 82, 22);
+		cairo_set_source_rgb(cr, 0, 0, 0);
+		cairo_set_line_width(cr, 1);
+		cairo_stroke(cr);
+
+		/* line with gradient from red to green */
+		cairo_save(cr);
+		cairo_translate(cr, 35, 17 + i * space);
+		cairo_move_to(cr, 0, 0);
+		cairo_line_to(cr, (100 - all[i]->damage) * 0.8, 0);
+		cairo_set_line_width(cr, 20);
+		cairo_set_source(cr, pat);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+
+		/* display the name of the robot */
+		cairo_text_extents(cr, all[i]->name, &ext);
+		cairo_move_to(cr, 75 - ext.width / 2, 21 + i * space);
+		cairo_show_text(cr, all[i]->name);
+
+		/* grey out robot if killed */
+		if (all[i]->damage >= 100) {
+			cairo_rectangle(cr, 0, 4 + i * space, 120, space);
+			cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 0.5);
+			cairo_fill(cr);
+		}
+	}
+	cairo_pattern_destroy(pat);
+	cairo_restore(cr);
 }
 
 void
