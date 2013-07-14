@@ -113,7 +113,7 @@ scan (struct robot *r, int degree, int resolution)
 	//printf("x %d\n", posx);
 	//printf("y %d\n", posy);
 
-	if(resolution > 10 && resolution < 0){
+	if(resolution > 10 || resolution < 0){
 		return -1;
 	}
 	
