@@ -163,14 +163,17 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_set_source_rgba(cr, 0.5, 0.5, 0.5, 0.2);
 	cairo_rectangle(cr, 0, 0, 120, 540);
 	cairo_fill(cr);
-		
+
+	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+			       CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size(cr, 13.0);
+	pat = cairo_pattern_create_linear(100.0, 0.0,  0.0, 0.0);
+	cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);
+	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
+
 	for(i = 0; i < max_robots; i++){
 		
 		/* display the name of the robot*/
-		cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                               CAIRO_FONT_WEIGHT_BOLD);
-		cairo_set_font_size (cr, 13.0);
-
 		cairo_move_to (cr, 10.0, 15.0+i*space);		
 		cairo_show_text (cr, all[i]->name);
 		
@@ -178,12 +181,8 @@ draw_stats(cairo_t *cr, struct robot **all)
 		cairo_move_to (cr, 10, 25+i*space);
 		cairo_set_line_width (cr, 30);
 		cairo_line_to (cr, 110, 25+i*space);
-		pat = cairo_pattern_create_linear (100.0, 0.0,  0.0, 0.0);
-		cairo_pattern_add_color_stop_rgba (pat, 1, 1, 0, 0, 1);
-		cairo_pattern_add_color_stop_rgba (pat, 0, 0, 1, 0, 1);
 		cairo_set_source (cr, pat);
 		cairo_stroke (cr);
-		cairo_pattern_destroy (pat);
 		
 		/*black line on top of the colored one*/
 		cairo_move_to (cr, 10, 25+i*space);
@@ -203,6 +202,7 @@ draw_stats(cairo_t *cr, struct robot **all)
 		cairo_stroke (cr);
 		
 	}
+	cairo_pattern_destroy (pat);
 	cairo_restore (cr);
 }
 
