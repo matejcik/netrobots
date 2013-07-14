@@ -17,6 +17,8 @@
 
 static int serverfd;
 
+static void set_default_name(char *argv0);
+
 static int 
 eval_response(int resp) {
 		switch (resp) {
@@ -145,6 +147,7 @@ main (int argc, char **argv)
 	signal(SIGPIPE, SIG_IGN);
 	if(client_init(remotehost, port))
 		printf_die(stderr, "could not connect to : %s:%s\n", EXIT_FAILURE, remotehost, port);
+	set_default_name(argv[0]);
 
 	srandom(time(NULL) + getpid());
 	srand(time(NULL) + getpid());
@@ -216,4 +219,25 @@ loc_y()
 	int ret;
 	ret = sockwrite(serverfd, LOC_Y, NULL);
 	return get_resp_value(ret);
+}
+
+void
+set_name (char *name)
+{
+	int ret;
+	ret = sockwrite(serverfd, NAME, "%.32s", name);
+	get_resp_value(ret);
+}
+
+static void
+set_default_name(char *argv0)
+{
+	char *start;
+
+	start = strrchr(argv0, '/');
+	if (!start)
+		start = argv0;
+	else
+		start++;
+	set_name(start);
 }

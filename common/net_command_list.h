@@ -7,6 +7,7 @@
 #define DAMAGE 5
 #define SPEED 6
 #define DRIVE 7
+#define NAME 8
 
 
 #define ERROR 0

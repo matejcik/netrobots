@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "robotserver.h"
 #include "net_utils.h"
@@ -15,16 +16,18 @@ int cmd_loc_y (struct robot *robot, int *args);
 int cmd_damage (struct robot *robot, int *args);
 int cmd_speed (struct robot *robot, int *args);
 int cmd_drive (struct robot *robot, int *args);
+int cmd_name (struct robot *robot, char **args);
 
 cmd_t cmds[] = {
-	{ cmd_cycle, 0, true }, // CYCLE
-	{ cmd_cannon, 2, true }, // CANNON
-	{ cmd_scan, 2, true }, // SCAN
-	{ cmd_loc_x, 0, false }, // LOC_X
-	{ cmd_loc_y, 0, false }, // LOC_Y
-	{ cmd_damage, 0, false }, // DAMAGE
-	{ cmd_speed, 0, false }, // SPEED
-	{ cmd_drive, 2, true }, // MOVE
+	{ (cmd_f)cmd_cycle, 0, CMD_TYPE_INT, true }, // CYCLE
+	{ (cmd_f)cmd_cannon, 2, CMD_TYPE_INT, true }, // CANNON
+	{ (cmd_f)cmd_scan, 2, CMD_TYPE_INT, true }, // SCAN
+	{ (cmd_f)cmd_loc_x, 0, CMD_TYPE_INT, false }, // LOC_X
+	{ (cmd_f)cmd_loc_y, 0, CMD_TYPE_INT, false }, // LOC_Y
+	{ (cmd_f)cmd_damage, 0, CMD_TYPE_INT, false }, // DAMAGE
+	{ (cmd_f)cmd_speed, 0, CMD_TYPE_INT, false }, // SPEED
+	{ (cmd_f)cmd_drive, 2, CMD_TYPE_INT, true }, // MOVE
+	{ (cmd_f)cmd_name, 1, CMD_TYPE_STR, false }, // NAME
 };
 
 result_t error_res = { -1, true, false };
@@ -81,11 +84,20 @@ cmd_drive (struct robot *robot, int *args)
 	return 1;
 }
 
+cmd_name (struct robot *robot, char **args)
+{
+	if (robot->name)
+		free(robot->name);
+	robot->name = strndup(args[0], MAX_NAME_LEN);
+	return 1;
+}
+
 result_t
 execute_cmd (struct robot *robot, char *input)
 {
 	char **argv;
-	int argc, ret, *args = NULL, i;
+	int argc, ret, i;
+	void *args = NULL;
 	cmd_t cmd;
 	result_t res = error_res;
 
@@ -103,15 +115,24 @@ execute_cmd (struct robot *robot, char *input)
 	if (cmd.args != argc - 1)
 		goto out;
 
-	if (!(args = (int *) malloc(cmd.args * sizeof(int))))
-		goto out;
-
-	for (i = 1; i < argc; i++) {
-		if (!str_isnumber(argv[i]))
+	switch (cmd.type) {
+	case CMD_TYPE_INT:
+		if (!(args = malloc(cmd.args * sizeof(int))))
 			goto out;
-		args[i - 1] = atoi(argv[i]);
-	}
 
+		for (i = 1; i < argc; i++) {
+			if (!str_isnumber(argv[i]))
+				goto out;
+			((int *)args)[i - 1] = atoi(argv[i]);
+		}
+		break;
+	case CMD_TYPE_STR:
+		if (!(args = malloc(cmd.args * sizeof(char *))))
+			goto out;
+		for (i = 1; i < argc; i++)
+			((char **)args)[i - 1] = argv[i];
+		break;
+	}
 
 	ret = cmd.func(robot, args);
 	ndprintf(stdout, "[COMMAND] %s -> %d recived - %g %g %d\n", argv[0], ret, robot->x, robot->y, robot->damage);

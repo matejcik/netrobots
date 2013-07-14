@@ -6,9 +6,17 @@
 #include "robotserver.h"
 #include "net_command_list.h"
 
+typedef enum cmd_type_t {
+	CMD_TYPE_INT,
+	CMD_TYPE_STR,
+} cmd_type_t;
+
+typedef (*cmd_f)(struct robot *robot, void *args);
+
 typedef struct cmd_t {
-	int (*func) (struct robot *robot, int *args);
+	cmd_f func;
 	int args;
+	cmd_type_t type;
 	bool cycle;
 } cmd_t;
 
