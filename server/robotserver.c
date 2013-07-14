@@ -102,6 +102,17 @@ compute_angle(int x1, int y1, int x2, int y2)
 	return standardizeDegree(atan2(y2 - y1,x2 - x1) * 180/M_PI);
 }
 
+int angle_in(int angle, int lower, int upper)
+{
+	if (angle >= lower && angle <= upper)
+		return 1;
+	angle -= 360;
+	if (angle >= lower && angle <= upper)
+		return 1;
+	angle += 720;
+	return (angle >= lower && angle <= upper);
+}
+
 int
 scan (struct robot *r, int degree, int resolution)
 {
@@ -129,7 +140,7 @@ scan (struct robot *r, int degree, int resolution)
 		if(all_robots[i]->damage < 100){
 			angle_between_robots = compute_angle(posx, posy, all_robots[i]->x, all_robots[i]->y);
 			//printf("name: %s angle_b2en %d\n",all_robots[i]->name, angle_between_robots);
-			if(angle_between_robots <= upper_angle && angle_between_robots >= bottom_angle){
+			if (angle_in(angle_between_robots, bottom_angle, upper_angle)) {
 				distance =  getDistance(posx, posy, all_robots[i]->x, all_robots[i]->y);
 				if(distance < min_distance && distance != 0){
 					min_distance = distance;
