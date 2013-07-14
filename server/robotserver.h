@@ -25,6 +25,7 @@ struct robot {
   int degree;
   int cannon_degree;
   int radar_degree;
+  int score;
   time_t live_length;	/* valid only after death */
   struct cannon cannon[2];
   float color[3]; 	

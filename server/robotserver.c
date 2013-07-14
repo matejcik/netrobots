@@ -152,11 +152,15 @@ scan (struct robot *r, int degree, int resolution)
 	return min_distance;
 }
 
+#define min(a, b)	((a) < (b) ? (a) : (b))
+
 int
 cannon (struct robot *r, int degree, int range)
 {
 	int i,freeSlot;
 	int distance_from_center, x, y;
+	int damage;
+
 	/* If the cannon is not reloading, meaning it's ready the robottino shoots otherwise break */
 	for(freeSlot = 0; freeSlot < 2; freeSlot++)
 		if(r->cannon[freeSlot].timeToReload == 0) break;
@@ -183,12 +187,18 @@ cannon (struct robot *r, int degree, int range)
 	for(i = 0; i < max_robots; i++){
 		if(all_robots[i]->damage < 100){
 			distance_from_center = getDistance(all_robots[i]->x, all_robots[i]->y, x, y);
+			damage = 0;
 			if(distance_from_center <= 5)
-				all_robots[i]->damage += 10;
+				damage = 10;
 			else if(distance_from_center <= 20)
-				all_robots[i]->damage += 5;
+				damage = 5;
 			else if(distance_from_center <= 40)
-				all_robots[i]->damage += 3;
+				damage = 3;
+			if (damage) {
+				damage = min(damage, 100 - all_robots[i]->damage);
+				all_robots[i]->damage += damage;
+				r->score += damage;
+			}
 		}
 		if(all_robots[i]->damage >= 100)
 			kill_robot(all_robots[i]);

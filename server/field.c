@@ -316,10 +316,17 @@ void draw_results(cairo_t *cr)
 		} else
 			font_size = 15;
 		cairo_set_font_size(cr, font_size);
-		snprintf(text, sizeof(text), "%ld:%02ld", ranking[i]->live_length / 60,
+
+		snprintf(text, sizeof(text), "time: %ld:%02ld", ranking[i]->live_length / 60,
 			 ranking[i]->live_length % 60);
 		cairo_text_extents(cr, text, &ext);
-		cairo_move_to(cr, (WIN_HEIGHT - 40 - ext.width) / 2, yoffset + font_size + 5 + i * 60);
+		cairo_move_to(cr, (WIN_HEIGHT - 40) / 2 - ext.width - 20,
+			      yoffset + font_size + 5 + i * 60);
+		cairo_show_text(cr, text);
+
+		snprintf(text, sizeof(text), "score: %d", ranking[i]->score);
+		cairo_move_to(cr, (WIN_HEIGHT - 40) / 2 + 20,
+			      yoffset + font_size + 5 + i * 60);
 		cairo_show_text(cr, text);
 
 		if (i == 0)
