@@ -31,9 +31,19 @@ degtorad(int degrees)
 	return radiants;
 }
 
-void
-shot_animation(cairo_t *cr, double size, double direction, struct cannon *can)
+double _getDistance(double x1, double y1, double x2, double y2)
 {
+	double x, y;
+	x = x2 - x1;
+	y = y2 - y1;
+	return sqrt(x*x + y*y);
+}
+
+void
+shot_animation(cairo_t *cr, double size, double direction, struct cannon *can,
+	       double origin_x, double origin_y)
+{
+	double dist;
 	int time = can->timeToReload-RELOAD_RATIO/2;/*reduce the reload time by half of it so it draws the
 										explosion and the flash for half the reload time*/
 	
@@ -75,6 +85,20 @@ shot_animation(cairo_t *cr, double size, double direction, struct cannon *can)
 	
 	cairo_restore(cr);
 
+	/* draw track from the robot to the target */
+	cairo_save(cr);
+	cairo_translate(cr, origin_x, origin_y);
+	cairo_rotate(cr, direction);
+	dist = _getDistance(origin_x, origin_y, can->x, can->y);
+	cairo_move_to(cr, dist, -5);
+	cairo_line_to(cr, 0, 0);
+	cairo_line_to(cr, dist, 5);
+	cairo_set_source_rgba(cr, 1, 0.5, 0, (double)time / RELOAD_RATIO);
+	cairo_fill_preserve(cr);
+	cairo_set_source_rgba(cr, 1, 0, 0, (double)time / RELOAD_RATIO);
+	cairo_set_line_width(cr, 1);
+	cairo_stroke(cr);
+	cairo_restore(cr);
 }
 
 /*
@@ -223,8 +247,10 @@ draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 	draw_cannon(cr, degtorad(270+myRobot->cannon_degree));
 	draw_radar(cr, degtorad(270+myRobot->radar_degree));
 	cairo_restore(cr); /* pop translate/scale */
-	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[0]);
-	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[1]);
+	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
+		       myRobot->x, myRobot->y);
+	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
+		       myRobot->x, myRobot->y);
 }
 
 void
