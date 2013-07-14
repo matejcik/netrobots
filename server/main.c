@@ -16,6 +16,7 @@ int
 main (int argc, char **argv)
 {
   unsigned int i = 0, start_ticks;
+  int finished = 0;
 
   /* initialize SDL and create as OpenGL-texture source */
   cairo_t *cairo_context;
@@ -38,7 +39,12 @@ main (int argc, char **argv)
 		break;
 
 	/* Call functions here to parse event and render on cairo_context...  */
-	server_cycle(&event);
+	if (!finished) {
+		finished = server_cycle(&event);
+		if (finished)
+			complete_ranking();
+	} else
+		server_finished_cycle(&event);
     }
 	
 

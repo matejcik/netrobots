@@ -14,10 +14,6 @@
 extern void init_cairo ();
 
 /* Update the canvas */
-extern void update_display(SDL_Event *);
-
-/* Updates the Canvas */
-extern void update_display(SDL_Event *);
-
+extern void update_display(SDL_Event *, int finished);
 
 #endif /* MAP_H */

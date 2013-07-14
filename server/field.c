@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <assert.h>
 
 #include "drawing.h"
 #include "field.h"
@@ -269,6 +270,64 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_restore(cr);
 }
 
+void draw_results(cairo_t *cr)
+{
+	int i;
+	int yoffset, x, y, xwidth, font_size;
+	char text[32];
+	cairo_text_extents_t ext;
+
+	assert(dead_robots == max_robots);
+
+	cairo_save(cr);
+	cairo_translate(cr, 20, 20);
+	cairo_rectangle(cr, 0, 0, WIN_HEIGHT - 40, WIN_HEIGHT - 40);
+	cairo_set_source_rgba(cr, 0.7, 0.7, 0.6, 0.5);
+	cairo_fill(cr);
+
+	yoffset = 120;
+	for (i = 0; i < 5 && i < max_robots; i++) {
+		cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+				       CAIRO_FONT_WEIGHT_BOLD);
+		cairo_set_source_rgb(cr, 0, 0.3, 0);
+		if (i == 0)
+			font_size = 42;
+		else
+			font_size = 30;
+		cairo_set_font_size(cr, font_size);
+		snprintf(text, sizeof(text), "%d.", i + 1);
+		cairo_text_extents(cr, ranking[i]->name, &ext);
+		xwidth = ext.width;
+		cairo_text_extents(cr, text, &ext);
+		xwidth += ext.width + 3 * font_size;
+		x = (WIN_HEIGHT - 40 - xwidth) / 2;
+		y = yoffset + i * 60;
+		cairo_move_to(cr, x, y);
+		cairo_show_text(cr, text);
+		_draw_robot(cr, x + ext.width + font_size, y - font_size * 0.4, 0, 0, 0,
+			    ranking[i]->color, 0, font_size / 150.0);
+		cairo_move_to(cr, x + 3 * font_size, y);
+		cairo_show_text(cr, ranking[i]->name);
+
+		cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_ITALIC,
+				       CAIRO_FONT_WEIGHT_NORMAL);
+		if (i == 0) {
+			font_size = 21;
+		} else
+			font_size = 15;
+		cairo_set_font_size(cr, font_size);
+		snprintf(text, sizeof(text), "%ld:%02ld", ranking[i]->live_length / 60,
+			 ranking[i]->live_length % 60);
+		cairo_text_extents(cr, text, &ext);
+		cairo_move_to(cr, (WIN_HEIGHT - 40 - ext.width) / 2, yoffset + font_size + 5 + i * 60);
+		cairo_show_text(cr, text);
+
+		if (i == 0)
+			yoffset += 20;
+	}
+	cairo_restore(cr);
+}
+
 void
 draw (cairo_t *cr)
 {
@@ -291,9 +350,11 @@ draw (cairo_t *cr)
 }
 
 void
-update_display(SDL_Event *event)
+update_display(SDL_Event *event, int finished)
 {	
   draw(cr);
+  if (finished)
+	draw_results(cr);
   if (event->type == SDL_KEYDOWN)
     {
       if (event->key.keysym.sym == SDLK_q)

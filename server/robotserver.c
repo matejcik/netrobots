@@ -1,13 +1,44 @@
 #include "robotserver.h"
 #include <math.h>
+#include <assert.h>
 
 void
-kill_robot(struct robot *r) {
+kill_robot(struct robot *r)
+{
+	if (r->live_length)
+		return;
 	r->x = -1000;
 	r->y = -1000;
 	r->damage = 100;
 	r->cannon[0].timeToReload = 0;
 	r->cannon[1].timeToReload = 0;
+	r->live_length = time(NULL) - game_start;
+	ranking[max_robots - (++dead_robots)] = r;
+}
+
+void complete_ranking(void)
+{
+	int i, selected, max;
+	struct robot *r;
+	time_t t = time(NULL) - game_start;
+
+	while (dead_robots < max_robots) {
+		selected = -1;
+		max = 0;
+		for (i = 0; i < max_robots; i++) {
+			r = all_robots[i];
+			if (r->live_length)
+				continue;
+			if (r->damage > max) {
+				max = r->damage;
+				selected = i;
+			}
+		}
+		assert(selected >= 0);
+		r = all_robots[selected];
+		r->live_length = t;
+		ranking[max_robots - (++dead_robots)] = r;
+	}
 }
 
 int 

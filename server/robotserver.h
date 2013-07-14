@@ -1,11 +1,13 @@
 #ifndef ROBOTSERVER_H
 #define ROBOTSERVER_H 1
 
+#include <time.h>
+
 #define RELOAD_RATIO 50
 #define SPEED_RATIO 0.04
 #define BREAK_DISTANCE (0.7 / SPEED_RATIO)
 
-#define MAX_NAME_LEN	32
+#define MAX_NAME_LEN	14
 
 struct cannon {
 	int timeToReload;
@@ -23,6 +25,7 @@ struct robot {
   int degree;
   int cannon_degree;
   int radar_degree;
+  time_t live_length;	/* valid only after death */
   struct cannon cannon[2];
   float color[3]; 	
 
@@ -31,6 +34,10 @@ struct robot {
 
 extern struct robot **all_robots;
 extern int max_robots;
+
+extern struct robot **ranking;
+extern int dead_robots;
+extern time_t game_start;
 
 /* Interface from networking code to game logic.  */
 
@@ -43,5 +50,6 @@ int loc_y (struct robot *r);
 int speed (struct robot *r);
 int damage (struct robot *r);
 void kill_robot (struct robot *r);
+void complete_ranking(void);
 
 #endif

@@ -25,11 +25,15 @@ struct pollfd *fds;
 
 extern int debug;
 int max_robots;
+int dead_robots;
 
 int max_cycles;
 int current_cycles = 0;
 
 struct robot **all_robots;
+struct robot **ranking;
+
+time_t game_start;
 
 float get_rand_color() {
 	float color = (float) (random() /(double) RAND_MAX) ;
@@ -73,7 +77,7 @@ void raise_timer (int sig)
 	timer = 1;
 }
 
-void
+int
 process_robots ()
 {
 	int i, ret, rfd;
@@ -101,7 +105,7 @@ process_robots ()
 				ndprintf(stdout, "[GAME] Winner found\n");
 			else
 				ndprintf(stdout, "[GAME] Ended - No winner\n");
-			exit(EXIT_SUCCESS);
+			return 1;
 		}
 		else if (to_talk == 1)
 			winner = 1;
@@ -168,6 +172,7 @@ process_robots ()
 			}
 		}
 	} while (to_talk && !timer);
+	return 0;
 }
 
 void
@@ -222,9 +227,10 @@ server_start (char *hostname, char *port)
 		sockwrite(fds[i].fd, START, "Let's play!");
 
 	signal (SIGALRM, raise_timer);
+	game_start = time(NULL);
 }
 
-void server_cycle (SDL_Event *event)
+int server_cycle (SDL_Event *event)
 {
 	int i;
 	if (current_cycles >= max_cycles) {
@@ -235,7 +241,7 @@ void server_cycle (SDL_Event *event)
 			}
 		}
 		ndprintf(stdout, "[GAME] Ended - Draw!\n");
-		exit(EXIT_SUCCESS);
+		return 1;
 	}
 	current_cycles++;
 	struct itimerval itv;
@@ -246,8 +252,13 @@ void server_cycle (SDL_Event *event)
 	setitimer (ITIMER_REAL, &itv, NULL);
 	timer = 0;
 	cycle();
-	update_display(event);
-	process_robots();
+	update_display(event, 0);
+	return process_robots();
+}
+
+void server_finished_cycle(SDL_Event *event)
+{
+	update_display(event, 1);
 }
 
 void
@@ -303,6 +314,8 @@ server_init (int argc, char *argv[])
 		max_cycles = STD_CYCLES;
 
 	all_robots = (struct robot **) malloc(max_robots * sizeof(struct robot *));
+	ranking = (struct robot **) malloc(max_robots * sizeof(struct robot *));
+	dead_robots = 0;
 
 	server_start(hostname, port);
 	return 0;
