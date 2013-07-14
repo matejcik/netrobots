@@ -219,16 +219,16 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_text_extents_t ext;
 
 	cairo_save(cr);
-	cairo_translate(cr, 600, 0);
+	cairo_translate(cr, WIN_HEIGHT, 0);
 
 	cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
-	cairo_rectangle(cr, 0, 0, 120, 540);
+	cairo_rectangle(cr, 0, 0, 140, WIN_HEIGHT);
 	cairo_fill(cr);
 
 	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
 			       CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_font_size(cr, 13.0);
-	pat = cairo_pattern_create_linear(80, 0, 0, 0);
+	pat = cairo_pattern_create_linear(100, 0, 0, 0);
 	cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);
 	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
 
@@ -238,7 +238,7 @@ draw_stats(cairo_t *cr, struct robot **all)
 			    0.15);
 
 		/* rectangle around life bar */
-		cairo_rectangle(cr, 34, 6 + i * space, 82, 22);
+		cairo_rectangle(cr, 34, 6 + i * space, 102, 22);
 		cairo_set_source_rgb(cr, 0, 0, 0);
 		cairo_set_line_width(cr, 1);
 		cairo_stroke(cr);
@@ -247,7 +247,7 @@ draw_stats(cairo_t *cr, struct robot **all)
 		cairo_save(cr);
 		cairo_translate(cr, 35, 17 + i * space);
 		cairo_move_to(cr, 0, 0);
-		cairo_line_to(cr, (100 - all[i]->damage) * 0.8, 0);
+		cairo_line_to(cr, 100 - all[i]->damage, 0);
 		cairo_set_line_width(cr, 20);
 		cairo_set_source(cr, pat);
 		cairo_stroke(cr);
@@ -255,12 +255,12 @@ draw_stats(cairo_t *cr, struct robot **all)
 
 		/* display the name of the robot */
 		cairo_text_extents(cr, all[i]->name, &ext);
-		cairo_move_to(cr, 75 - ext.width / 2, 21 + i * space);
+		cairo_move_to(cr, 85 - ext.width / 2, 21 + i * space);
 		cairo_show_text(cr, all[i]->name);
 
 		/* grey out robot if killed */
 		if (all[i]->damage >= 100) {
-			cairo_rectangle(cr, 0, 4 + i * space, 120, space);
+			cairo_rectangle(cr, 0, 4 + i * space, 140, space);
 			cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 0.5);
 			cairo_fill(cr);
 		}

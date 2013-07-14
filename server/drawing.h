@@ -10,8 +10,8 @@
 #include <cairo.h>
 #include "SDL.h"
 
-#define WIN_WIDTH	720
 #define WIN_HEIGHT	540
+#define WIN_WIDTH	(WIN_HEIGHT + 140)
 #define WIN_TITLE	"Netrobots Battlefield"
 
 /* Functions to create more cairo contexts.  */
