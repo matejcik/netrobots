@@ -27,6 +27,8 @@ extern int debug;
 int max_robots;
 int dead_robots;
 
+game_type_t game_type = GAME_SCORE;
+
 int max_cycles;
 int current_cycles = 0;
 
@@ -264,10 +266,11 @@ void server_finished_cycle(SDL_Event *event)
 void
 usage (char *prog, int retval)
 {
-	printf("Usage %s [-n <clients> -H <hostname> -P <port> -d]\n"
+	printf("Usage %s [-n <clients> -H <hostname> -P <port> -t -d]\n"
 		"\t-n <clients>\tNumber of clients to start the game (has to be bigger than 1) (Default: 5)\n"
 		"\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 		"\t-P <port>\tSpecifies port (Default: 4300)\n"
+		"\t-t\tTime based game (Default: score based game)\n"
 		"\t-d\tEnables debug mode\n", prog);
 	exit(retval);
 }
@@ -279,7 +282,7 @@ server_init (int argc, char *argv[])
 
 	char *port = STD_PORT, *hostname = STD_HOSTNAME;
 
-	while ((retval = getopt(argc, argv, "dn:hH:P:c:")) != -1) {
+	while ((retval = getopt(argc, argv, "dn:hH:P:c:t")) != -1) {
 		switch (retval) {
 			case 'c':
 				max_cycles = atoi(optarg);
@@ -295,6 +298,9 @@ server_init (int argc, char *argv[])
 				break;
 			case 'n':
 				max_robots = atoi(optarg);
+				break;
+			case 't':
+				game_type = GAME_TIME;
 				break;
 			case 'h':
 				usage(argv[0], EXIT_SUCCESS);

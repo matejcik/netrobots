@@ -18,7 +18,7 @@ kill_robot(struct robot *r)
 
 void complete_ranking(void)
 {
-	int i, selected, max;
+	int i, j, selected, max;
 	struct robot *r;
 	time_t t = time(NULL) - game_start;
 
@@ -38,6 +38,25 @@ void complete_ranking(void)
 		r = all_robots[selected];
 		r->live_length = t;
 		ranking[max_robots - (++dead_robots)] = r;
+	}
+
+	if (game_type == GAME_SCORE) {
+		for (i = 0; i < max_robots; i++) {
+			selected = -1;
+			max = -1;
+			for (j = i; j < max_robots; j++) {
+				r = ranking[j];
+				if ((r->score > max) ||
+				    ((r->score == max) &&
+				     (r->live_length > ranking[selected]->live_length))) {
+					max = r->score;
+					selected = j;
+				}
+			}
+			r = ranking[i];
+			ranking[i] = ranking[selected];
+			ranking[selected] = r;
+		}
 	}
 }
 

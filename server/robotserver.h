@@ -40,6 +40,12 @@ extern struct robot **ranking;
 extern int dead_robots;
 extern time_t game_start;
 
+typedef enum game_type_t {
+	GAME_SCORE,
+	GAME_TIME,
+} game_type_t;
+extern game_type_t game_type;
+
 /* Interface from networking code to game logic.  */
 
 int scan (struct robot *r, int degree, int resolution);
