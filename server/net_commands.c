@@ -85,36 +85,30 @@ result_t
 execute_cmd (struct robot *robot, char *input)
 {
 	char **argv;
-	int argc, ret, *args, i;
+	int argc, ret, *args = NULL, i;
 	cmd_t cmd;
-	result_t res;
+	result_t res = error_res;
 
 	argc = str_to_argv(input, &argv);
 	if (argc == -1)
 		return error_res;
-	if (!argc || !str_isnumber(argv[0])) {
-		free(argv);
-		return error_res;
-	}
+	if (!argc || !str_isnumber(argv[0]))
+		goto out;
 
 	i = atoi(argv[0]);
 	if (i < 0 || i >= cmdn)
-		return error_res;
+		goto out;
 	cmd = cmds[i];
 
-	if (cmd.args != argc - 1) {
-		free(argv);
-		return error_res;
-	}
+	if (cmd.args != argc - 1)
+		goto out;
 
-	if (!(args = (int *) malloc(cmd.args * sizeof(int)))) {
-		free(argv);
-		return error_res;
-	}
+	if (!(args = (int *) malloc(cmd.args * sizeof(int))))
+		goto out;
 
 	for (i = 1; i < argc; i++) {
 		if (!str_isnumber(argv[i]))
-			return error_res;
+			goto out;
 		args[i - 1] = atoi(argv[i]);
 	}
 
@@ -122,13 +116,14 @@ execute_cmd (struct robot *robot, char *input)
 	ret = cmd.func(robot, args);
 	ndprintf(stdout, "[COMMAND] %s -> %d recived - %g %g %d\n", argv[0], ret, robot->x, robot->y, robot->damage);
 	if (ret == -1)
-		return error_res;
+		goto out;
 
 	res.result = ret;
 	res.cycle = cmd.cycle;
 	res.error = false;
- 	
-	free(argv);
 
+out:
+	free(args);
+	free(argv);
 	return res;
 }
