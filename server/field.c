@@ -105,7 +105,7 @@ shot_animation(cairo_t *cr, double size, double direction, struct cannon *can,
  *draws the cannon with the right orientation
  */
 void
-draw_cannon(cairo_t *cr, double direction)
+draw_cannon(cairo_t *cr, double direction, int reload)
 {
 	double x1=-5, y1=51,
 		x2=-5, y2=19,
@@ -114,7 +114,7 @@ draw_cannon(cairo_t *cr, double direction)
 		
 	cairo_save(cr);
 	cairo_rotate(cr, direction);
-	cairo_set_source_rgba (cr, 0, 0, 0, 1);	
+	cairo_set_source_rgba (cr, 0, 0, 0, (double)(RELOAD_RATIO - reload) / RELOAD_RATIO);
 	cairo_move_to (cr, x1, y1);
 	cairo_line_to (cr, x2, y2);
 	cairo_line_to (cr, x3, y3);
@@ -152,7 +152,7 @@ draw_radar(cairo_t *cr, double direction)
  */
 void
 _draw_robot(cairo_t *cr, double x, double y, int degree, int cannon_degree,
-	    int radar_degree, float *color, double size)
+	    int radar_degree, float *color, int reload, double size)
 {
 	double x1=-70, y1=-30,
 		y2=10,
@@ -185,7 +185,7 @@ _draw_robot(cairo_t *cr, double x, double y, int degree, int cannon_degree,
 	
 	cairo_stroke (cr);
 	cairo_restore(cr); /* pop rotate */
-	draw_cannon(cr, degtorad(270+cannon_degree));
+	draw_cannon(cr, degtorad(270+cannon_degree), reload);
 	draw_radar(cr, degtorad(270+radar_degree));
 	cairo_restore(cr); /* pop translate/scale */
 }
@@ -198,12 +198,14 @@ void
 draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 {
 	_draw_robot(cr, myRobot->x, myRobot->y, myRobot->degree, myRobot->cannon_degree,
-		    myRobot->radar_degree, myRobot->color, size);
+		    myRobot->radar_degree, myRobot->color, 0, size);
 	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
 		       myRobot->x, myRobot->y);
 	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
 		       myRobot->x, myRobot->y);
 }
+
+#define min(a, b)	((a) < (b) ? (a) : (b))
 
 /*
  *draws the name and a health bar for every robot (maybe in the future also the reloading animation
@@ -231,7 +233,9 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
 
 	for(i = 0; i < max_robots; i++){
-		_draw_robot(cr, 15, 16 + i * space, 0, 0, 0, all[i]->color, 0.15);
+		_draw_robot(cr, 15, 16 + i * space, 0, 0, 0, all[i]->color,
+			    min(all[i]->cannon[0].timeToReload, all[i]->cannon[1].timeToReload),
+			    0.15);
 
 		/* rectangle around life bar */
 		cairo_rectangle(cr, 34, 6 + i * space, 82, 22);
