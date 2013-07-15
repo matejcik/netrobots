@@ -18,6 +18,7 @@ typedef struct cmd_t {
 	int args;
 	cmd_type_t type;
 	bool cycle;
+	bool prestart;
 } cmd_t;
 
 typedef struct result_t {
@@ -28,6 +29,6 @@ typedef struct result_t {
 
 
 void init_server(char *hostname, char *port);
-result_t execute_cmd (struct robot *robot, char *input);
+result_t execute_cmd (struct robot *robot, char *input, bool prestart);
 
 #endif

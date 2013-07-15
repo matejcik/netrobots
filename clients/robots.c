@@ -18,18 +18,17 @@
 static int serverfd;
 
 static void set_default_name(char *argv0);
+static void start(void);
 
 static int 
 eval_response(int resp) {
 		switch (resp) {
 			case END:
-				sockwrite(serverfd, END, NULL);
 				printf_die(stdout, "You win!\n", 0);
 				break;
 			case DEAD:
 				printf_die(stdout, "You are dead!\n", 1);
 				break;
-			case START:
 			case OK:
 				break;
 			case DRAW:
@@ -73,7 +72,6 @@ get_resp_value(int ret)
 static int
 client_init(char * remotehost, char * port) 
 {
-	int result = 1;
 	int ret, sock;
 	struct addrinfo * ai;
 	struct addrinfo hints;
@@ -94,7 +92,6 @@ client_init(char * remotehost, char * port)
 			if(connect (sock, runp->ai_addr, runp->ai_addrlen) == 0) {
 				ndprintf(stdout, "[NETWORK] connected to server\n");
 				serverfd = sock;
-				result = get_resp_value(0);
 				break;
 			}
 			close(sock);
@@ -102,7 +99,7 @@ client_init(char * remotehost, char * port)
 		runp = runp->ai_next;
 	}
 	freeaddrinfo(ai);
-	return result;
+	return (sock < 0);
 }
 
 
@@ -151,7 +148,16 @@ main (int argc, char **argv)
 
 	srandom(time(NULL) + getpid());
 	srand(time(NULL) + getpid());
+	start();
 	rmain ();
+}
+
+static void
+start(void)
+{
+	int ret;
+	ret = sockwrite(serverfd, START, NULL);
+	get_resp_value(ret);
 }
 
 int

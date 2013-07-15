@@ -1,18 +1,17 @@
- 
-#define CYCLE 0
-#define CANNON 1
-#define SCAN 2
-#define LOC_X 3
-#define LOC_Y 4
-#define DAMAGE 5
-#define SPEED 6
-#define DRIVE 7
-#define NAME 8
+#define START 0
+#define CYCLE 1
+#define CANNON 2
+#define SCAN 3
+#define LOC_X 4
+#define LOC_Y 5
+#define DAMAGE 6
+#define SPEED 7
+#define DRIVE 8
+#define NAME 9
 
 
 #define ERROR 0
 #define OK 1
-#define START 2
-#define END 3
-#define DEAD 4
-#define DRAW 5
+#define END 2
+#define DEAD 3
+#define DRAW 4

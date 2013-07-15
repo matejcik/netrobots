@@ -83,7 +83,7 @@ void raise_timer (int sig)
 }
 
 int
-process_robots ()
+process_robots (bool prestart)
 {
 	int i, ret, rfd;
 	struct pollfd *pfd;
@@ -106,13 +106,15 @@ process_robots ()
 		}
 
 		if (to_talk == 0) {
+			if (prestart)
+				return 0;
 			if (winner)
 				ndprintf(stdout, "[GAME] Winner found\n");
 			else
 				ndprintf(stdout, "[GAME] Ended - No winner\n");
 			return 1;
 		}
-		else if (to_talk == 1)
+		else if (to_talk == 1 && !prestart)
 			winner = 1;
 
 		poll(fds, max_robots, 10);
@@ -121,6 +123,10 @@ process_robots ()
 			pfd = &fds[i];
 			if (pfd->fd == -1) // Dead robot
 				continue;
+			if (robot->waiting) {
+				to_talk--;
+				continue;
+			}
 			if (pfd->events == 0)
 				to_talk--;
 
@@ -150,20 +156,22 @@ process_robots ()
 			ret = read(pfd->fd, buf, STD_BUF);
 			switch (ret) {
 				case -1:
+				case 0:
 					close(pfd->fd);
 					pfd->fd = -1;
 					kill_robot(robot);
 					break;
-				case 0:
-					abort ();
 				default:
 					buf[ret] = '\0';
-					result = execute_cmd(robot, buf);
+					result = execute_cmd(robot, buf, prestart);
 					if (result.error) {
-						sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
-						close(pfd->fd);
-						pfd->fd = -1;
-						kill_robot(robot);
+						if (result.result < 0) {
+							sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
+							close(pfd->fd);
+							pfd->fd = -1;
+							kill_robot(robot);
+						} else
+							robot->waiting = 1;
 					}
 					else {
 						if (result.cycle)
@@ -222,6 +230,17 @@ server_start (char *hostname, char *port)
 		ndprintf_die(stderr, "[ERROR] Coulnd't malloc space for fds!\n");
 }
 
+void charge_timer(void)
+{
+	struct itimerval itv;
+	itv.it_interval.tv_sec = 0;
+	itv.it_interval.tv_usec = 0;
+	itv.it_value.tv_sec = 0;
+	itv.it_value.tv_usec = 10000;
+	setitimer (ITIMER_REAL, &itv, NULL);
+	timer = 0;
+}
+
 int server_process_connections(SDL_Event *event)
 {
 	int fd, i;
@@ -229,10 +248,13 @@ int server_process_connections(SDL_Event *event)
 	socklen_t addrlen = sizeof(addr);
 	int res = 0;
 
+	charge_timer();
 	update_display(event, 0);
+	process_robots(1);
 
 	/* TODO: This is horrible. We should just poll for an incoming
-	 * connection, a keypress, or X event, not looping like hell. */
+	 * connection, data on existing fd, a keypress, or X event, not
+	 * looping like hell. */
 	fd = accept(sockd, (struct sockaddr *) &addr, &addrlen);
 	if (fd >= 0) {
 		if (max_robots == MAX_ROBOTS) {
@@ -256,10 +278,14 @@ int server_process_connections(SDL_Event *event)
 
 	if (res) {
 		ndprintf(stdout, "[GAME] Starting. All clients connected!\n");
-		for (i = 0; i < max_robots; i++)
-			sockwrite(fds[i].fd, START, "Let's play!");
+		/* notify all robots that are passively waiting for game start */
+		for (i = 0; i < max_robots; i++) {
+			if (!all_robots[i]->waiting)
+				continue;
+			all_robots[i]->waiting = 0;
+			sockwrite(fds[i].fd, OK, "1");
+		}
 
-		signal (SIGALRM, raise_timer);
 		game_start = time(NULL);
 	}
 	return res;
@@ -279,16 +305,10 @@ int server_cycle (SDL_Event *event)
 		return 1;
 	}
 	current_cycles++;
-	struct itimerval itv;
-	itv.it_interval.tv_sec = 0;
-	itv.it_interval.tv_usec = 0;
-	itv.it_value.tv_sec = 0;
-	itv.it_value.tv_usec = 10000;
-	setitimer (ITIMER_REAL, &itv, NULL);
-	timer = 0;
+	charge_timer();
 	cycle();
 	update_display(event, 0);
-	return process_robots();
+	return process_robots(0);
 }
 
 void server_finished_cycle(SDL_Event *event)
@@ -357,5 +377,6 @@ server_init (int argc, char *argv[])
 	dead_robots = 0;
 
 	server_start(hostname, port);
+	signal (SIGALRM, raise_timer);
 	return 0;
 }

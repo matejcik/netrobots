@@ -13,6 +13,8 @@ kill_robot(struct robot *r)
 	r->cannon[0].timeToReload = 0;
 	r->cannon[1].timeToReload = 0;
 	r->live_length = time(NULL) - game_start;
+	if (r->live_length < 0)
+		r->live_length = 0;
 	ranking[max_robots - (++dead_robots)] = r;
 }
 
