@@ -1,7 +1,9 @@
 #include "robotserver.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <time.h>
 
 void get_time_delta(struct timeval *tv)
 {
@@ -70,6 +72,23 @@ void complete_ranking(void)
 			ranking[i] = ranking[selected];
 			ranking[selected] = r;
 		}
+	}
+	if (save_results) {
+		FILE *f;
+
+		f = fopen("./results.txt", "a");
+		if (!f) {
+			ndprintf(stderr, "[WARNING] Error writing results\n");
+			return;
+		}
+		fprintf(f, "****** %s", ctime(&game_start.tv_sec));
+		for (i = 0; i < max_robots; i++) {
+			r = ranking[i];
+			fprintf(f, "%d.\t%s\t%d\t%ld.%ld\n", i + 1, r->name, r->score,
+				r->life_length.tv_sec, r->life_length.tv_usec);
+		}
+		fprintf(f, "\n");
+		fclose(f);
 	}
 }
 

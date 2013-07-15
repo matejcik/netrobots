@@ -73,7 +73,7 @@ get_resp_value(int ret)
 static int
 client_init(char * remotehost, char * port) 
 {
-	int ret, sock;
+	int ret, sock = -1;
 	struct addrinfo * ai;
 	struct addrinfo hints;
 	
@@ -96,6 +96,7 @@ client_init(char * remotehost, char * port)
 				break;
 			}
 			close(sock);
+			sock = -1;
 		}
 		runp = runp->ai_next;
 	}
@@ -156,7 +157,7 @@ main (int argc, char **argv)
 	
 	signal(SIGPIPE, SIG_IGN);
 	if(client_init(remotehost, port))
-		printf_die(stderr, "could not connect to : %s:%s\n", EXIT_FAILURE, remotehost, port);
+		printf_die(stderr, "Could not connect to %s:%s\n", EXIT_FAILURE, remotehost, port);
 
 	srandom(time(NULL) + getpid());
 	srand(time(NULL) + getpid());
