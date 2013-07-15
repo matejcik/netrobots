@@ -9,9 +9,6 @@
 #define DRIVE 8
 #define NAME 9
 
-
 #define ERROR 0
 #define OK 1
-#define END 2
-#define DEAD 3
-#define DRAW 4
+#define DEAD 2

@@ -24,16 +24,10 @@ void set_name(char *name);
 static int 
 eval_response(int resp) {
 		switch (resp) {
-			case END:
-				printf_die(stdout, "You win!\n", 0);
-				break;
 			case DEAD:
 				printf_die(stdout, "You are dead!\n", 1);
 				break;
 			case OK:
-				break;
-			case DRAW:
-				printf_die(stdout, "Game ended wih a draw!\n", 0);
 				break;
 			case ERROR:
 			default:
