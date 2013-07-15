@@ -227,7 +227,7 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_fill(cr);
 
 	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
-			       CAIRO_FONT_WEIGHT_BOLD);
+			       CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size(cr, 13.0);
 	pat = cairo_pattern_create_linear(100, 0, 0, 0);
 	cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);

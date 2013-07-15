@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <ctype.h>
 
 #include "net_utils.h"
 #include "net_command_list.h"
@@ -230,8 +231,17 @@ loc_y()
 void
 set_name (char *name)
 {
-	int ret;
-	ret = sockwrite(serverfd, NAME, "%.32s", name);
+	int ret, i;
+	char sanitized[15];
+
+	for (i = 0; i < 14 && name[i]; i++) {
+		if (isspace(name[i]))
+			sanitized[i] = '_';
+		else
+			sanitized[i] = name[i];
+	}
+	sanitized[i] = 0;
+	ret = sockwrite(serverfd, NAME, "%s", sanitized);
 	get_resp_value(ret);
 }
 

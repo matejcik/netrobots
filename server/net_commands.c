@@ -95,9 +95,15 @@ cmd_drive (struct robot *robot, int *args)
 
 cmd_name (struct robot *robot, char **args)
 {
+	char *name, *p;
+
+	name = strndup(args[0], MAX_NAME_LEN);
+	for (p = name; *p; p++)
+		if (*p == '_')
+			*p = ' ';
 	if (robot->name)
 		free(robot->name);
-	robot->name = strndup(args[0], MAX_NAME_LEN);
+	robot->name = name;
 	return 1;
 }
 
