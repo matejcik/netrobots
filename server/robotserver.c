@@ -39,7 +39,7 @@ void complete_ranking(void)
 
 	while (dead_robots < max_robots) {
 		selected = -1;
-		max = 0;
+		max = -1;
 		for (i = 0; i < max_robots; i++) {
 			r = all_robots[i];
 			if (r->life_length.tv_sec >= 0)
