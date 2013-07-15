@@ -102,7 +102,7 @@ cairo_t *init_toolkit(int *argc, char ***argv)
   return cairo_context;
 }
 
-event_t process_toolkit(void)
+event_t process_toolkit(cairo_t **cr)
 {
   SDL_Event event;
 

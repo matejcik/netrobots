@@ -375,3 +375,8 @@ destroy_cairo ()
 {
 	free_toolkit(cr);
 }
+
+event_t process_cairo(void)
+{
+	return process_toolkit(&cr);
+}

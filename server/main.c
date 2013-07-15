@@ -31,7 +31,7 @@ main (int argc, char **argv)
   /* enter event-loop */
   for (;;) {
 	i++;
-	event = process_toolkit();
+	event = process_cairo();
 	if (event == EVENT_QUIT)
 		break;
 

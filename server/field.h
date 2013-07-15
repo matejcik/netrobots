@@ -7,8 +7,11 @@
 #ifndef MAP_H
 #define MAP_H
 
+#include "toolkit.h"
+
 /* Initialize the rendering of the map.  */
 extern void init_cairo(int *argc, char ***argv);
+event_t process_cairo(void);
 
 /* Update the canvas */
 extern void update_display(int finished);

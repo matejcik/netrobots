@@ -106,17 +106,17 @@ process_robots (bool prestart)
 			}
 		}
 
-		if (to_talk == 0) {
-			if (prestart)
-				return 0;
-			if (winner)
-				ndprintf(stdout, "[GAME] Winner found\n");
-			else
-				ndprintf(stdout, "[GAME] Ended - No winner\n");
-			return 1;
+		if (!prestart) {
+			if (to_talk == 0) {
+				if (winner)
+					ndprintf(stdout, "[GAME] Winner found\n");
+				else
+					ndprintf(stdout, "[GAME] Ended - No winner\n");
+				return 1;
+			}
+			else if (to_talk == 1)
+				winner = 1;
 		}
-		else if (to_talk == 1 && !prestart)
-			winner = 1;
 
 		poll(fds, max_robots, 10);
 		for (i = 0; i < max_robots; i++) {
@@ -185,7 +185,7 @@ process_robots (bool prestart)
 					break;
 			}
 		}
-	} while (to_talk && !timer);
+	} while ((to_talk || prestart) && !timer);
 	return 0;
 }
 

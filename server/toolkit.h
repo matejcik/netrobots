@@ -22,6 +22,6 @@ typedef enum event_t {
 /* Functions used by main.c as a high-level interface with the toolkit.  */
 extern cairo_t *init_toolkit(int *argc, char ***argv);
 extern void free_toolkit(cairo_t *cr);
-extern event_t process_toolkit(void);
+extern event_t process_toolkit(cairo_t **cr);
 
 #endif /* DRAWING_H */

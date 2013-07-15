@@ -1,4 +1,5 @@
-BACKEND := sdl
+BACKEND = gtk
+# BACKEND := sdl
 
 all:
 clean:
@@ -11,6 +12,8 @@ COMMON_CFLAGS = -g -Wuninitialized -O2
 
 sdl_CFLAGS = `pkg-config sdl --cflags`
 sdl_LDFLAGS = `pkg-config sdl --libs`
+gtk_CFLAGS = `pkg-config gtk+-3.0 --cflags`
+gtk_LDFLAGS = `pkg-config gtk+-3.0 --libs`
 
 CFLAGS = $(COMMON_CFLAGS) `pkg-config cairo --cflags` $($(BACKEND)_CFLAGS) -Icommon
 LDFLAGS = -g `pkg-config cairo --libs` $($(BACKEND)_LDFLAGS) -lm
