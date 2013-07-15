@@ -7,13 +7,10 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <cairo.h>
-#include <SDL.h>
-
 /* Initialize the rendering of the map.  */
-extern void init_cairo ();
+extern void init_cairo(int *argc, char ***argv);
 
 /* Update the canvas */
-extern void update_display(SDL_Event *, int finished);
+extern void update_display(int finished);
 
 #endif /* MAP_H */

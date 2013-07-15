@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "drawing.h"
+#include "toolkit.h"
 
 #include "SDL.h"
 
@@ -65,8 +65,7 @@ destroy_cairo_context (cairo_t *cairo_context)
 
 static SDL_Surface *sdl_surface, *window_surface;
 
-cairo_t *
-init_sdl (void)
+cairo_t *init_toolkit(int *argc, char ***argv)
 {
   /* init cairo.  */
   unsigned char *buffer = calloc (4 * WIN_WIDTH * WIN_HEIGHT, sizeof (char));
@@ -103,14 +102,32 @@ init_sdl (void)
   return cairo_context;
 }
 
-void draw_sdl (void)
+event_t process_toolkit(void)
 {
+  SDL_Event event;
+
   SDL_BlitSurface (sdl_surface, NULL, window_surface, NULL);
   SDL_Flip (window_surface);
+
+  event.type = -1;
+  SDL_PollEvent(&event);
+  /* check for user hitting close-window widget */
+  if (event.type == SDL_QUIT)
+	return EVENT_QUIT;
+  if (event.type = SDL_KEYDOWN) {
+	switch (event.key.keysym.sym) {
+	case SDLK_q:
+		return EVENT_QUIT;
+	case SDLK_s:
+	case SDLK_RETURN:
+		return EVENT_START;
+	}
+  }
+  return EVENT_NONE;
 }
 
-void
-free_sdl (void)
+void free_toolkit(cairo_t *cr)
 {
+  destroy_cairo_context(cr);
   SDL_Quit ();
 }

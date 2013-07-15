@@ -14,7 +14,7 @@
 #include <sys/time.h>
 #include <assert.h>
 
-#include "drawing.h"
+#include "toolkit.h"
 #include "field.h"
 #include "robotserver.h"
 
@@ -357,38 +357,21 @@ draw (cairo_t *cr)
 }
 
 void
-update_display(SDL_Event *event, int finished)
+update_display(int finished)
 {	
   draw(cr);
   if (finished)
 	draw_results(cr);
-  if (event->type == SDL_KEYDOWN)
-    {
-      if (event->key.keysym.sym == SDLK_q)
-        {
-          event->type = SDL_QUIT;
-          SDL_PushEvent (event);
-        }
-    }
 }
 
-/* can be used to add a background to the window*/
 void
-init_cairo ()
+init_cairo(int *argc, char ***argv)
 {
-	cr = init_sdl();
-#if 0
-  cairo_surface_t *png_map = cairo_image_surface_create_from_png ("background.png");
-  map_context = create_cairo_context ();
-  cairo_set_source_surface (map_context, png_map, 0, 0);
-  cairo_paint (map_context);
-  cairo_surface_destroy (png_map);
-#endif
+	cr = init_toolkit(argc, argv);
 }
 
 void
 destroy_cairo ()
 {
-	destroy_cairo_context(cr);
-	free_sdl ();
+	free_toolkit(cr);
 }

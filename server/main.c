@@ -7,60 +7,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/time.h>
 
-#include "drawing.h"
+#include "toolkit.h"
 #include "field.h"
 #include "net_defines.h"
 
 int
 main (int argc, char **argv)
 {
-  unsigned int i = 0, start_ticks;
+  unsigned int i = 0;
+  struct timeval start_ticks, end_ticks;
   int phase = 0;
+  event_t event;
 
-  /* initialize SDL and create as OpenGL-texture source */
   cairo_t *cairo_context;
   srandom(time(NULL) + getpid());
+  init_cairo(&argc, &argv);
   server_init(argc, argv);
-  init_cairo();
 
-  start_ticks = SDL_GetTicks ();
-	
+  gettimeofday(&start_ticks, NULL);
+
   /* enter event-loop */
   for (;;) {
-	SDL_Event event;
 	i++;
-	draw_sdl ();
-	event.type = -1;
-	SDL_PollEvent (&event);
-
-	/* check for user hitting close-window widget */
-	if (event.type == SDL_QUIT)
+	event = process_toolkit();
+	if (event == EVENT_QUIT)
 		break;
 
 	/* Call functions here to parse event and render on cairo_context...  */
 	switch (phase) {
 	case 0:
 		/* connecting */
-		if (server_process_connections(&event))
+		if (server_process_connections(event))
 			phase++;
 		break;
 	case 1:
 		/* game in progress */
-		if (server_cycle(&event)) {
+		if (server_cycle(event)) {
 			complete_ranking();
 			phase++;
 		}
 		break;
 	case 2:
 		/* display ranking */
-		server_finished_cycle(&event);
+		server_finished_cycle(event);
 		break;
 	}
     }
-	
 
-  printf ("%.2f fps\n", (i * 1000.0) / (SDL_GetTicks () - start_ticks));
+  gettimeofday(&end_ticks, NULL);
+  printf ("%.2f fps\n", (i * 1000.0) / (1000 * (end_ticks.tv_sec - start_ticks.tv_sec) +
+			(end_ticks.tv_usec - start_ticks.tv_usec) / 1000));
 
   /* clear resources before exit */
   destroy_cairo();

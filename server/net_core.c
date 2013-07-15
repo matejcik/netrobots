@@ -14,7 +14,7 @@
 #include "net_utils.h"
 #include "net_defines.h"
 #include "robotserver.h"
-#include "drawing.h"
+#include "toolkit.h"
 
 #define STD_CYCLES 10000
 #define STD_HOSTNAME NULL
@@ -242,7 +242,7 @@ void charge_timer(void)
 	timer = 0;
 }
 
-int server_process_connections(SDL_Event *event)
+int server_process_connections(event_t event)
 {
 	int fd, i;
 	struct sockaddr *addr;
@@ -250,7 +250,7 @@ int server_process_connections(SDL_Event *event)
 	int res = 0;
 
 	charge_timer();
-	update_display(event, 0);
+	update_display(0);
 	process_robots(1);
 
 	/* TODO: This is horrible. We should just poll for an incoming
@@ -269,13 +269,8 @@ int server_process_connections(SDL_Event *event)
 		}
 	}
 
-	if (event->type == SDL_KEYDOWN) {
-		switch (event->key.keysym.sym) {
-		case SDLK_s:
-		case SDLK_RETURN:
-			res = 1;
-		}
-	}
+	if (event == EVENT_START)
+		res = 1;
 
 	if (res) {
 		ndprintf(stdout, "[GAME] Starting. All clients connected!\n");
@@ -292,7 +287,7 @@ int server_process_connections(SDL_Event *event)
 	return res;
 }
 
-int server_cycle (SDL_Event *event)
+int server_cycle(event_t event)
 {
 	int i;
 	if (current_cycles >= max_cycles) {
@@ -308,13 +303,13 @@ int server_cycle (SDL_Event *event)
 	current_cycles++;
 	charge_timer();
 	cycle();
-	update_display(event, 0);
+	update_display(0);
 	return process_robots(0);
 }
 
-void server_finished_cycle(SDL_Event *event)
+void server_finished_cycle(event_t event)
 {
-	update_display(event, 1);
+	update_display(1);
 }
 
 void
