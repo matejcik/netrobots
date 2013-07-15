@@ -5,7 +5,7 @@
 void
 kill_robot(struct robot *r)
 {
-	if (r->live_length)
+	if (r->live_length >= 0)
 		return;
 	r->x = -1000;
 	r->y = -1000;
@@ -27,7 +27,7 @@ void complete_ranking(void)
 		max = 0;
 		for (i = 0; i < max_robots; i++) {
 			r = all_robots[i];
-			if (r->live_length)
+			if (r->live_length >= 0)
 				continue;
 			if (r->damage > max) {
 				max = r->damage;

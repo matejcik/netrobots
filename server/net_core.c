@@ -67,6 +67,8 @@ create_client (int fd)
 	r->color[1] = get_rand_color();
 	r->color[2] = get_rand_color();
 
+	r->live_length = -1;
+
 	fds[max_robots].fd = fd;
 	all_robots[max_robots++] = r;
 	return 1;
