@@ -315,10 +315,11 @@ void server_finished_cycle(event_t event)
 void
 usage (char *prog, int retval)
 {
-	printf("Usage %s [-n <clients> -H <hostname> -P <port> -t -s -d]\n"
+	printf("Usage %s [OPTIONS]\n"
 		"\t-n <clients>\tNumber of clients to start the game, 0 for dynamic (Default: 0)\n"
 		"\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 		"\t-P <port>\tSpecifies port (Default: 4300)\n"
+		"\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
 		"\t-t\tTime based game (Default: score based game)\n"
 		"\t-s\tSave results to ./results.txt\n"
 		"\t-d\tEnables debug mode\n", prog);
