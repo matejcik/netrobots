@@ -7,6 +7,7 @@
 #define SPEED_RATIO 0.04
 #define BREAK_DISTANCE (0.7 / SPEED_RATIO)
 
+#define MAX_ROBOTS	21
 #define MAX_NAME_LEN	14
 
 struct cannon {

@@ -16,7 +16,7 @@ int
 main (int argc, char **argv)
 {
   unsigned int i = 0, start_ticks;
-  int finished = 0;
+  int phase = 0;
 
   /* initialize SDL and create as OpenGL-texture source */
   cairo_t *cairo_context;
@@ -39,12 +39,24 @@ main (int argc, char **argv)
 		break;
 
 	/* Call functions here to parse event and render on cairo_context...  */
-	if (!finished) {
-		finished = server_cycle(&event);
-		if (finished)
+	switch (phase) {
+	case 0:
+		/* connecting */
+		if (server_process_connections(&event))
+			phase++;
+		break;
+	case 1:
+		/* game in progress */
+		if (server_cycle(&event)) {
 			complete_ranking();
-	} else
+			phase++;
+		}
+		break;
+	case 2:
+		/* display ranking */
 		server_finished_cycle(&event);
+		break;
+	}
     }
 	
 

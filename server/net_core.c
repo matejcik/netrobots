@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <signal.h>
 
 #include "net_utils.h"
@@ -15,16 +16,16 @@
 #include "robotserver.h"
 #include "drawing.h"
 
-#define STD_CLIENTS 5
 #define STD_CYCLES 10000
 #define STD_HOSTNAME NULL
 #define STD_PORT "4300"
 
-int current_robots = 0;
+int autostart_robots = 0;
 struct pollfd *fds;
+int sockd;
 
 extern int debug;
-int max_robots;
+int max_robots = 0;
 int dead_robots;
 
 game_type_t game_type = GAME_SCORE;
@@ -66,8 +67,8 @@ create_client (int fd)
 	r->color[1] = get_rand_color();
 	r->color[2] = get_rand_color();
 
-	fds[current_robots].fd = fd;
-	all_robots[current_robots++] = r;
+	fds[max_robots].fd = fd;
+	all_robots[max_robots++] = r;
 	return 1;
 }
 
@@ -180,17 +181,16 @@ process_robots ()
 void
 server_start (char *hostname, char *port)
 {
-	int sockd, ret, fd, i, opt = 1;
+	int ret, opt = 1;
 	struct addrinfo *ai, *runp, hints;
-	struct sockaddr *addr;
-	socklen_t addrlen = sizeof(addr);
-	double start, end;
-    
+
 	memset (&hints, 0x0, sizeof (hints));
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
 
-	ndprintf(stdout, "[SERVER] Starting Server at %s:%s\n[INFO] Number of players: %d\n", hostname, port, max_robots);
+	ndprintf(stdout, "[SERVER] Starting Server at %s:%s\n", hostname, port);
+	if (autostart_robots > 0)
+		ndprintf(stdout, "[INFO] Number of players: %d\n", autostart_robots);
 
 	if ((ret = getaddrinfo(hostname, port, &hints, &ai)))
 		ndprintf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s\n", hostname, port, gai_strerror(ret));
@@ -210,26 +210,57 @@ server_start (char *hostname, char *port)
 	/* To close the port after closing the socket */
 	if (setsockopt(sockd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (opt)) == -1)
 		ndprintf_die(stderr, "[ERROR] setsockopt(): %s\n", strerror(errno));
+	if (fcntl(sockd, F_SETFL, O_NONBLOCK))
+		ndprintf_die(stderr, "[ERROR] fcntl(): %s\n", strerror(errno));
 	if (bind(sockd, runp->ai_addr, runp->ai_addrlen))
 		ndprintf_die(stderr, "[ERROR] bind(): %s\n", strerror(errno));
-	if (listen(sockd, max_robots))
+	if (listen(sockd, MAX_ROBOTS))
 		ndprintf_die(stderr, "[ERROR] listen(): %s\n", strerror(errno));
-	if (!(fds = (struct pollfd *) malloc (max_robots * sizeof(struct pollfd))))
+	if (!(fds = (struct pollfd *) malloc (MAX_ROBOTS * sizeof(struct pollfd))))
 		ndprintf_die(stderr, "[ERROR] Coulnd't malloc space for fds!\n");
-	
-	while (1) { /* Wait for all the clients to connect */
-		fd = accept(sockd, (struct sockaddr *) &addr, &addrlen);
-		if (!create_client(fd))
-			sockwrite(fd, ERROR, "Couldn't duplicate the FD\n");
-		if (current_robots >= max_robots)
-			break;
-	}
-	ndprintf(stdout, "[GAME] Starting. All clients connected!\n");
-	for (i = 0; i < max_robots; i++)
-		sockwrite(fds[i].fd, START, "Let's play!");
+}
 
-	signal (SIGALRM, raise_timer);
-	game_start = time(NULL);
+int server_process_connections(SDL_Event *event)
+{
+	int fd, i;
+	struct sockaddr *addr;
+	socklen_t addrlen = sizeof(addr);
+	int res = 0;
+
+	update_display(event, 0);
+
+	/* TODO: This is horrible. We should just poll for an incoming
+	 * connection, a keypress, or X event, not looping like hell. */
+	fd = accept(sockd, (struct sockaddr *) &addr, &addrlen);
+	if (fd >= 0) {
+		if (max_robots == MAX_ROBOTS) {
+			ndprintf(stdout, "[INFO] Ignoring excessive connection\n");
+			close(fd);
+		} else {
+			if (!create_client(fd))
+				sockwrite(fd, ERROR, "Couldn't duplicate the FD\n");
+			if (autostart_robots > 0 && max_robots == autostart_robots)
+				res = 1;
+		}
+	}
+
+	if (event->type == SDL_KEYDOWN) {
+		switch (event->key.keysym.sym) {
+		case SDLK_s:
+		case SDLK_RETURN:
+			res = 1;
+		}
+	}
+
+	if (res) {
+		ndprintf(stdout, "[GAME] Starting. All clients connected!\n");
+		for (i = 0; i < max_robots; i++)
+			sockwrite(fds[i].fd, START, "Let's play!");
+
+		signal (SIGALRM, raise_timer);
+		game_start = time(NULL);
+	}
+	return res;
 }
 
 int server_cycle (SDL_Event *event)
@@ -267,7 +298,7 @@ void
 usage (char *prog, int retval)
 {
 	printf("Usage %s [-n <clients> -H <hostname> -P <port> -t -d]\n"
-		"\t-n <clients>\tNumber of clients to start the game (has to be bigger than 1) (Default: 5)\n"
+		"\t-n <clients>\tNumber of clients to start the game, 0 for dynamic (Default: 0)\n"
 		"\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 		"\t-P <port>\tSpecifies port (Default: 4300)\n"
 		"\t-t\tTime based game (Default: score based game)\n"
@@ -297,7 +328,7 @@ server_init (int argc, char *argv[])
 				debug = 1;
 				break;
 			case 'n':
-				max_robots = atoi(optarg);
+				autostart_robots = atoi(optarg);
 				break;
 			case 't':
 				game_type = GAME_TIME;
@@ -313,14 +344,14 @@ server_init (int argc, char *argv[])
 	if (argc > optind) /* || !hostname || !port)*/
 		usage(argv[0], EXIT_FAILURE);
 
-	if (max_robots <= 1)
-		max_robots = STD_CLIENTS;
+	if (autostart_robots > MAX_ROBOTS)
+		autostart_robots = MAX_ROBOTS;
 
 	if (max_cycles <= 1)
 		max_cycles = STD_CYCLES;
 
-	all_robots = (struct robot **) malloc(max_robots * sizeof(struct robot *));
-	ranking = (struct robot **) malloc(max_robots * sizeof(struct robot *));
+	all_robots = (struct robot **) malloc(MAX_ROBOTS * sizeof(struct robot *));
+	ranking = (struct robot **) malloc(MAX_ROBOTS * sizeof(struct robot *));
 	dead_robots = 0;
 
 	server_start(hostname, port);
