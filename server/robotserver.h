@@ -1,7 +1,7 @@
 #ifndef ROBOTSERVER_H
 #define ROBOTSERVER_H 1
 
-#include <time.h>
+#include <sys/time.h>
 
 #define RELOAD_RATIO 50
 #define SPEED_RATIO 0.04
@@ -28,7 +28,7 @@ struct robot {
   int radar_degree;
   int score;
   int waiting;
-  time_t live_length;	/* valid only after death */
+  struct timeval life_length;	/* valid only after death */
   struct cannon cannon[2];
   float color[3]; 	
 
@@ -40,7 +40,7 @@ extern int max_robots;
 
 extern struct robot **ranking;
 extern int dead_robots;
-extern time_t game_start;
+extern struct timeval game_start;
 
 typedef enum game_type_t {
 	GAME_SCORE,

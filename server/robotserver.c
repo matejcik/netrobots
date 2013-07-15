@@ -1,20 +1,29 @@
 #include "robotserver.h"
+#include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+
+void get_time_delta(struct timeval *tv)
+{
+	struct timeval src;
+
+	gettimeofday(&src, NULL);
+	timersub(&src, &game_start, tv);
+	if (tv->tv_sec < 0)
+		timerclear(tv);
+}
 
 void
 kill_robot(struct robot *r)
 {
-	if (r->live_length >= 0)
+	if (r->life_length.tv_sec >= 0)
 		return;
 	r->x = -1000;
 	r->y = -1000;
 	r->damage = 100;
 	r->cannon[0].timeToReload = 0;
 	r->cannon[1].timeToReload = 0;
-	r->live_length = time(NULL) - game_start;
-	if (r->live_length < 0)
-		r->live_length = 0;
+	get_time_delta(&r->life_length);
 	ranking[max_robots - (++dead_robots)] = r;
 }
 
@@ -22,14 +31,16 @@ void complete_ranking(void)
 {
 	int i, j, selected, max;
 	struct robot *r;
-	time_t t = time(NULL) - game_start;
+	struct timeval t;
+
+	get_time_delta(&t);
 
 	while (dead_robots < max_robots) {
 		selected = -1;
 		max = 0;
 		for (i = 0; i < max_robots; i++) {
 			r = all_robots[i];
-			if (r->live_length >= 0)
+			if (r->life_length.tv_sec >= 0)
 				continue;
 			if (r->damage > max) {
 				max = r->damage;
@@ -38,7 +49,7 @@ void complete_ranking(void)
 		}
 		assert(selected >= 0);
 		r = all_robots[selected];
-		r->live_length = t;
+		r->life_length = t;
 		ranking[max_robots - (++dead_robots)] = r;
 	}
 
@@ -50,7 +61,7 @@ void complete_ranking(void)
 				r = ranking[j];
 				if ((r->score > max) ||
 				    ((r->score == max) &&
-				     (r->live_length > ranking[selected]->live_length))) {
+				     timercmp(&r->life_length, &ranking[selected]->life_length, >))) {
 					max = r->score;
 					selected = j;
 				}

@@ -41,13 +41,13 @@ int cmdn = sizeof(cmds)/sizeof(cmd_t);
 int
 cmd_start (struct robot *robot, int *args)
 {
-	return (game_start ? 1 : -2);
+	return (timerisset(&game_start) ? 1 : -2);
 }
 
 int
 cmd_cycle (struct robot *robot, int *args)
 {
-	return (game_start > 0);
+	return !!timerisset(&game_start);
 }
 
 int 

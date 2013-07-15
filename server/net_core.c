@@ -36,7 +36,7 @@ int current_cycles = 0;
 struct robot **all_robots;
 struct robot **ranking;
 
-time_t game_start;
+struct timeval game_start;
 
 float get_rand_color() {
 	float color = (float) (random() /(double) RAND_MAX) ;
@@ -67,7 +67,7 @@ create_client (int fd)
 	r->color[1] = get_rand_color();
 	r->color[2] = get_rand_color();
 
-	r->live_length = -1;
+	r->life_length.tv_sec = -1;
 
 	fds[max_robots].fd = fd;
 	all_robots[max_robots++] = r;
@@ -286,7 +286,7 @@ int server_process_connections(SDL_Event *event)
 			sockwrite(fds[i].fd, OK, "1");
 		}
 
-		game_start = time(NULL);
+		gettimeofday(&game_start, NULL);
 	}
 	return res;
 }
