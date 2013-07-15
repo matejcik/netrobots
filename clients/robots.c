@@ -18,8 +18,8 @@
 
 static int serverfd;
 
-static void set_default_name(char *argv0);
-static void start(void);
+void start(void);
+void set_name(char *name);
 
 static int 
 eval_response(int resp) {
@@ -103,6 +103,18 @@ client_init(char * remotehost, char * port)
 	return (sock < 0);
 }
 
+static void
+set_default_name(char *argv0)
+{
+	char *start;
+
+	start = strrchr(argv0, '/');
+	if (!start)
+		start = argv0;
+	else
+		start++;
+	set_name(start);
+}
 
 void
 usage (char *prog, int retval)
@@ -145,15 +157,18 @@ main (int argc, char **argv)
 	signal(SIGPIPE, SIG_IGN);
 	if(client_init(remotehost, port))
 		printf_die(stderr, "could not connect to : %s:%s\n", EXIT_FAILURE, remotehost, port);
-	set_default_name(argv[0]);
 
 	srandom(time(NULL) + getpid());
 	srand(time(NULL) + getpid());
+
+#ifndef MANUAL_INIT
+	set_default_name(argv[0]);
 	start();
+#endif
 	rmain ();
 }
 
-static void
+void
 start(void)
 {
 	int ret;
@@ -195,13 +210,18 @@ damage()
 	return get_resp_value(ret);
 }
 
-void
-cycle ()
+int
+cycle2()
 {
 	int ret;
 	ret = sockwrite(serverfd, CYCLE, NULL);
-	get_resp_value(ret);
+	return get_resp_value(ret);
+}
 
+void
+cycle ()
+{
+	(void)cycle2();
 }
 
 int
@@ -229,7 +249,7 @@ loc_y()
 }
 
 void
-set_name (char *name)
+set_name(char *name)
 {
 	int ret, i;
 	char sanitized[15];
@@ -243,17 +263,4 @@ set_name (char *name)
 	sanitized[i] = 0;
 	ret = sockwrite(serverfd, NAME, "%s", sanitized);
 	get_resp_value(ret);
-}
-
-static void
-set_default_name(char *argv0)
-{
-	char *start;
-
-	start = strrchr(argv0, '/');
-	if (!start)
-		start = argv0;
-	else
-		start++;
-	set_name(start);
 }

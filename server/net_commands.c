@@ -47,7 +47,7 @@ cmd_start (struct robot *robot, int *args)
 int
 cmd_cycle (struct robot *robot, int *args)
 {
-	return 1;
+	return (game_start > 0);
 }
 
 int 
