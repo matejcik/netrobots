@@ -23,8 +23,8 @@ main (int argc, char **argv)
 
   cairo_t *cairo_context;
   srandom(time(NULL) + getpid());
-  init_cairo(&argc, &argv);
   server_init(argc, argv);
+  init_cairo(&argc, &argv);
 
   gettimeofday(&start_ticks, NULL);
 
