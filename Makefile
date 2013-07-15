@@ -8,7 +8,7 @@ clean:
 
 ## server
 
-COMMON_CFLAGS = -g -Wuninitialized -O2
+COMMON_CFLAGS = -g -Wuninitialized -O0
 
 sdl_CFLAGS = `pkg-config sdl --cflags`
 sdl_LDFLAGS = `pkg-config sdl --libs`

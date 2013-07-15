@@ -38,6 +38,7 @@ struct robot **all_robots;
 struct robot **ranking;
 
 struct timeval game_start;
+struct timeval game_end;
 
 float get_rand_color() {
 	float color = (float) (random() /(double) RAND_MAX) ;
@@ -84,7 +85,7 @@ void raise_timer (int sig)
 }
 
 int
-process_robots (bool prestart)
+process_robots (int phase)
 {
 	int i, ret, rfd;
 	struct pollfd *pfd;
@@ -106,16 +107,9 @@ process_robots (bool prestart)
 			}
 		}
 
-		if (!prestart) {
-			if (to_talk == 0) {
-				if (winner)
-					ndprintf(stdout, "[GAME] Winner found\n");
-				else
-					ndprintf(stdout, "[GAME] Ended - No winner\n");
+		if (phase == 1) {
+			if (to_talk <= 1)
 				return 1;
-			}
-			else if (to_talk == 1)
-				winner = 1;
 		}
 
 		poll(fds, max_robots, 10);
@@ -164,7 +158,7 @@ process_robots (bool prestart)
 					break;
 				default:
 					buf[ret] = '\0';
-					result = execute_cmd(robot, buf, prestart);
+					result = execute_cmd(robot, buf, phase);
 					if (result.error) {
 						if (result.result < 0) {
 							sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
@@ -177,15 +171,12 @@ process_robots (bool prestart)
 					else {
 						if (result.cycle)
 							pfd->events = 0;
-						if (winner && pfd->fd == rfd)
-							sockwrite(pfd->fd, END, "%d", result.result);
-						else
-							sockwrite(pfd->fd, OK, "%d", result.result);
+						sockwrite(pfd->fd, OK, "%d", result.result);
 					}
 					break;
 			}
 		}
-	} while ((to_talk || prestart) && !timer);
+	} while ((to_talk || phase != 1) && !timer);
 	return 0;
 }
 
@@ -251,7 +242,7 @@ int server_process_connections(event_t event)
 
 	charge_timer();
 	update_display(0);
-	process_robots(1);
+	process_robots(0);
 
 	/* TODO: This is horrible. We should just poll for an incoming
 	 * connection, data on existing fd, a keypress, or X event, not
@@ -289,27 +280,29 @@ int server_process_connections(event_t event)
 
 int server_cycle(event_t event)
 {
-	int i;
+	int res;
+
 	if (current_cycles >= max_cycles) {
-		for (i = 0; i < max_robots; i++) {
-			if (fds[i].fd != -1) {
-				sockwrite(fds[i].fd, DRAW, "Max cycles reached!\n");
-				close(fds[i].fd);
-			}
-		}
 		ndprintf(stdout, "[GAME] Ended - Draw!\n");
+		gettimeofday(&game_end, NULL);
 		return 1;
 	}
 	current_cycles++;
 	charge_timer();
 	cycle();
 	update_display(0);
-	return process_robots(0);
+	res = process_robots(1);
+	if (res)
+		gettimeofday(&game_end, NULL);
+	return res;
 }
 
 void server_finished_cycle(event_t event)
 {
+	charge_timer();
+	cycle();
 	update_display(1);
+	process_robots(2);
 }
 
 void

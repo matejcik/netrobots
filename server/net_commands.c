@@ -108,7 +108,7 @@ cmd_name (struct robot *robot, char **args)
 }
 
 result_t
-execute_cmd (struct robot *robot, char *input, bool prestart)
+execute_cmd (struct robot *robot, char *input, int phase)
 {
 	char **argv;
 	int argc, ret, i;
@@ -130,7 +130,7 @@ execute_cmd (struct robot *robot, char *input, bool prestart)
 	if (cmd.args != argc - 1)
 		goto out;
 
-	if (prestart && !cmd.prestart)
+	if (phase == 0 && !cmd.prestart)
 		goto out;
 
 	switch (cmd.type) {

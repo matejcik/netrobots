@@ -41,6 +41,7 @@ extern int max_robots;
 extern struct robot **ranking;
 extern int dead_robots;
 extern struct timeval game_start;
+extern struct timeval game_end;
 extern int save_results;
 
 typedef enum game_type_t {

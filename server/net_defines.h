@@ -29,6 +29,6 @@ typedef struct result_t {
 
 
 void init_server(char *hostname, char *port);
-result_t execute_cmd (struct robot *robot, char *input, bool prestart);
+result_t execute_cmd (struct robot *robot, char *input, int phase);
 
 #endif
