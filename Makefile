@@ -1,5 +1,5 @@
-BACKEND = gtk
-# BACKEND := sdl
+# BACKEND = gtk
+BACKEND := sdl
 
 all:
 clean:
