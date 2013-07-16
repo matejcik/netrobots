@@ -13,6 +13,7 @@ void cycle ();
 int speed();
 int loc_x();
 int loc_y();
+int image(char *path);
 
 #define main rmain
 

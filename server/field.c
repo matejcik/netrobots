@@ -152,8 +152,9 @@ draw_radar(cairo_t *cr, double direction)
  *draws a robot with a given parameters
  */
 void
-_draw_robot(cairo_t *cr, double x, double y, int degree, int cannon_degree,
-	    int radar_degree, float *color, int reload, double size)
+_draw_robot(cairo_t *cr, cairo_surface_t *img, double x, double y, int degree,
+	    int cannon_degree, int radar_degree, float *color, int reload,
+	    double size)
 {
 	double x1=-70, y1=-30,
 		y2=10,
@@ -169,22 +170,30 @@ _draw_robot(cairo_t *cr, double x, double y, int degree, int cannon_degree,
 	cairo_save(cr);
 	cairo_rotate(cr, degtorad(90+degree));
 
-	cairo_set_source_rgba (cr, color[0], color[1], color[2], 0.6);
-	cairo_set_line_width (cr, 2);
-	cairo_move_to (cr,x1,y1);   
+	cairo_move_to (cr,x1,y1);
 	cairo_line_to (cr,x1,y2);
 	cairo_curve_to (cr, px2, py2, px3, py3, px4, py4);
 	cairo_line_to (cr, x4, y1);
 	cairo_line_to (cr, x5, y5);
 	cairo_close_path (cr);
-	cairo_set_fill_rule (cr, CAIRO_FILL_RULE_EVEN_ODD);
-	cairo_move_to (cr, 30, 0);
-	cairo_arc_negative (cr, 0, 0, 30, 0, -2*M_PI);
 
-	cairo_fill_preserve (cr);
-	cairo_set_source_rgba (cr, 0.1, 0.7, 0.5, 0.5);	
-	
-	cairo_stroke (cr);
+	if (!img) {
+		cairo_set_source_rgba (cr, color[0], color[1], color[2], 0.6);
+		cairo_set_line_width (cr, 2);
+		cairo_set_fill_rule (cr, CAIRO_FILL_RULE_EVEN_ODD);
+		cairo_move_to (cr, 30, 0);
+		cairo_arc_negative (cr, 0, 0, 30, 0, -2*M_PI);
+
+		cairo_fill_preserve (cr);
+		cairo_set_source_rgba (cr, 0.1, 0.7, 0.5, 0.5);
+
+		cairo_stroke (cr);
+	} else {
+		cairo_clip(cr);
+		cairo_set_source_surface(cr, img, x1, y5);
+		cairo_paint_with_alpha(cr, 0.6);
+	}
+
 	cairo_restore(cr); /* pop rotate */
 	draw_cannon(cr, degtorad(270+cannon_degree), reload);
 	draw_radar(cr, degtorad(270+radar_degree));
@@ -198,8 +207,9 @@ _draw_robot(cairo_t *cr, double x, double y, int degree, int cannon_degree,
 void
 draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 {
-	_draw_robot(cr, myRobot->x, myRobot->y, myRobot->degree, myRobot->cannon_degree,
-		    myRobot->radar_degree, myRobot->color, 0, size);
+	_draw_robot(cr, myRobot->img, myRobot->x, myRobot->y, myRobot->degree,
+		    myRobot->cannon_degree, myRobot->radar_degree, myRobot->color,
+		    0, size);
 	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
 		       myRobot->x, myRobot->y);
 	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
@@ -234,7 +244,7 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
 
 	for(i = 0; i < max_robots; i++){
-		_draw_robot(cr, 15, 16 + i * space, 0, 0, 0, all[i]->color,
+		_draw_robot(cr, all[i]->img, 15, 16 + i * space, 0, 0, 0, all[i]->color,
 			    min(all[i]->cannon[0].timeToReload, all[i]->cannon[1].timeToReload),
 			    0.15);
 
@@ -304,8 +314,9 @@ void draw_results(cairo_t *cr)
 		y = yoffset + i * 60;
 		cairo_move_to(cr, x, y);
 		cairo_show_text(cr, text);
-		_draw_robot(cr, x + ext.width + font_size, y - font_size * 0.4, 0, 0, 0,
-			    ranking[i]->color, 0, font_size / 150.0);
+		_draw_robot(cr, ranking[i]->img,
+			    x + ext.width + font_size, y - font_size * 0.4,
+			    0, 0, 0, ranking[i]->color, 0, font_size / 150.0);
 		cairo_move_to(cr, x + 3 * font_size, y);
 		cairo_show_text(cr, ranking[i]->name);
 

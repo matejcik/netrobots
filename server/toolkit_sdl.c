@@ -131,3 +131,15 @@ void free_toolkit(cairo_t *cr)
   destroy_cairo_context(cr);
   SDL_Quit ();
 }
+
+cairo_surface_t *toolkit_load_image(char *path)
+{
+	cairo_surface_t *result;
+
+	result = cairo_image_surface_create_from_png(path);
+	if (cairo_surface_status(result) != CAIRO_STATUS_SUCCESS) {
+		cairo_surface_destroy(result);
+		result = NULL;
+	}
+	return result;
+}

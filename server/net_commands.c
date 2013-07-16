@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "robotserver.h"
+#include "toolkit.h"
 #include "net_utils.h"
 #include "net_defines.h"
 
@@ -18,6 +19,7 @@ int cmd_damage (struct robot *robot, int *args);
 int cmd_speed (struct robot *robot, int *args);
 int cmd_drive (struct robot *robot, int *args);
 int cmd_name (struct robot *robot, char **args);
+int cmd_image (struct robot *robot, char **args);
 
 cmd_t cmds[] = {
 	{ (cmd_f)cmd_start, 0, CMD_TYPE_INT, false, true }, // START
@@ -30,6 +32,7 @@ cmd_t cmds[] = {
 	{ (cmd_f)cmd_speed, 0, CMD_TYPE_INT, false, false }, // SPEED
 	{ (cmd_f)cmd_drive, 2, CMD_TYPE_INT, true, false }, // MOVE
 	{ (cmd_f)cmd_name, 1, CMD_TYPE_STR, false, true }, // NAME
+	{ (cmd_f)cmd_image, 1, CMD_TYPE_STR, false, true }, // IMAGE
 };
 
 result_t error_res = { -1, true, false };
@@ -93,7 +96,7 @@ cmd_drive (struct robot *robot, int *args)
 	return 1;
 }
 
-cmd_name (struct robot *robot, char **args)
+int cmd_name(struct robot *robot, char **args)
 {
 	char *name, *p;
 
@@ -105,6 +108,16 @@ cmd_name (struct robot *robot, char **args)
 		free(robot->name);
 	robot->name = name;
 	return 1;
+}
+
+int cmd_image(struct robot *robot, char **args)
+{
+	if (strchr(args[0], '/'))
+		return -1;
+	if (robot->img)
+		cairo_surface_destroy(robot->img);
+	robot->img = toolkit_load_image(args[0]);
+	return !!robot->img;
 }
 
 result_t

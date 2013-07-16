@@ -2,6 +2,7 @@
 #define ROBOTSERVER_H 1
 
 #include <sys/time.h>
+#include <cairo/cairo.h>
 
 #define RELOAD_RATIO 50
 #define SPEED_RATIO 0.04
@@ -30,9 +31,8 @@ struct robot {
   int waiting;
   struct timeval life_length;	/* valid only after death */
   struct cannon cannon[2];
-  float color[3]; 	
-
-  /* info on what was done... */
+  float color[3];
+  cairo_surface_t *img;
 };
 
 extern struct robot **all_robots;

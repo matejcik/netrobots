@@ -23,5 +23,6 @@ typedef enum event_t {
 extern cairo_t *init_toolkit(int *argc, char ***argv);
 extern void free_toolkit(cairo_t *cr);
 extern event_t process_toolkit(cairo_t **cr);
+extern cairo_surface_t *toolkit_load_image(char *path);
 
 #endif /* DRAWING_H */

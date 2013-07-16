@@ -8,6 +8,7 @@
 #define SPEED 7
 #define DRIVE 8
 #define NAME 9
+#define IMAGE 10
 
 #define ERROR 0
 #define OK 1

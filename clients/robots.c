@@ -259,3 +259,10 @@ set_name(char *name)
 	ret = sockwrite(serverfd, NAME, "%s", sanitized);
 	get_resp_value(ret);
 }
+
+int image(char *path)
+{
+	int ret;
+	ret = sockwrite(serverfd, IMAGE, "%.60s", path);
+	return get_resp_value(ret);
+}
