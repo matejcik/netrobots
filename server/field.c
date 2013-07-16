@@ -45,44 +45,26 @@ shot_animation(cairo_t *cr, double size, double direction, struct cannon *can,
 	       double origin_x, double origin_y)
 {
 	double dist;
+	static cairo_pattern_t *pat = NULL;
 	int time = can->timeToReload-RELOAD_RATIO/2;/*reduce the reload time by half of it so it draws the
 										explosion and the flash for half the reload time*/
 	
 	if(time <= 0)return;/*if the gun is loaded don't paint anything*/
 	
 	cairo_save (cr);
-	cairo_pattern_t *pat;
 	cairo_translate (cr, can->x, can->y);
 
-#if 0
-	/* flash of the shot, should be translate to the robot's position.  */
-	cairo_scale(cr, size, size);
-	cairo_rotate(cr, direction);
-	
-	pat = cairo_pattern_create_linear (128, 64,
-                                     128, 128.0);
-	cairo_pattern_add_color_stop_rgba (pat, 0, 1, 0, 0, time/(RELOAD_RATIO/2.0));
-	cairo_pattern_add_color_stop_rgba (pat, 1, 1, 1, 0, time/(RELOAD_RATIO/2.0));
-	cairo_set_source (cr, pat);
-	
-	cairo_move_to (cr, 32, 50);
-	cairo_arc_negative (cr, 32, 32, 18, 90 * (M_PI/180.0), 0);
-	cairo_arc_negative (cr, 68, 32, 18, M_PI, 90 * (M_PI/180.0));
-	cairo_arc_negative (cr, 50, 50, 18, M_PI, 0);
-	cairo_fill (cr);
-	cairo_pattern_destroy (pat);
-#endif
-	
 	/* explosion*/
 	cairo_arc (cr, 0, 0, 40, 0, 2*M_PI);
-	pat = cairo_pattern_create_radial (0, 0, 10, 0, 0, 40);
-	cairo_pattern_add_color_stop_rgba (pat, 0, 1, 0, 0, time/(RELOAD_RATIO/2.0));
-	cairo_pattern_add_color_stop_rgba (pat, 0.3, 1, 0.5, 0, time/(RELOAD_RATIO/2.0));
-	cairo_pattern_add_color_stop_rgba (pat, 0.6, 1, 0.2, 0, time/(RELOAD_RATIO/2.0));
+	if (!pat) {
+		pat = cairo_pattern_create_radial (0, 0, 10, 0, 0, 40);
+		cairo_pattern_add_color_stop_rgba (pat, 0, 1, 0, 0, time/(RELOAD_RATIO/2.0));
+		cairo_pattern_add_color_stop_rgba (pat, 0.3, 1, 0.5, 0, time/(RELOAD_RATIO/2.0));
+		cairo_pattern_add_color_stop_rgba (pat, 0.6, 1, 0.2, 0, time/(RELOAD_RATIO/2.0));
+	}
 	cairo_set_source (cr, pat);
 	
 	cairo_fill (cr);
-	cairo_pattern_destroy (pat);
 	
 	cairo_restore(cr);
 
