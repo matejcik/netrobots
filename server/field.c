@@ -17,6 +17,7 @@
 #include "toolkit.h"
 #include "field.h"
 #include "robotserver.h"
+#include "net_utils.h"
 
 static cairo_t *map_context;
 static cairo_t *cr;
@@ -194,8 +195,6 @@ void draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 		       myRobot->x, myRobot->y);
 }
 
-#define min(a, b)	((a) < (b) ? (a) : (b))
-
 /*
  * draws the name and a health bar for every robot
  */
@@ -226,7 +225,7 @@ void draw_stats(cairo_t *cr, struct robot **all)
 
 	for (i = 0; i < max_robots; i++) {
 		_draw_robot(cr, all[i]->img, 15, 16 + i * space, 0, 0, 0, all[i]->color,
-			    min(all[i]->cannon[0].timeToReload, all[i]->cannon[1].timeToReload),
+			    MIN(all[i]->cannon[0].timeToReload, all[i]->cannon[1].timeToReload),
 			    0.15);
 
 		/* rectangle around life bar */

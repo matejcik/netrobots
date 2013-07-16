@@ -8,6 +8,7 @@
 #define STD_BUF		64
 
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
+#define MIN(a, b)	((a) < (b) ? (a) : (b))
 
 extern int debug;
 

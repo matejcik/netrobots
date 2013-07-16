@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "robotserver.h"
+#include "net_utils.h"
 
 void get_time_delta(struct timeval *tv)
 {
@@ -195,8 +196,6 @@ int scan(struct robot *r, int degree, int resolution)
 	return min_distance;
 }
 
-#define min(a, b)	((a) < (b) ? (a) : (b))
-
 int cannon(struct robot *r, int degree, int range)
 {
 	int i, freeSlot;
@@ -234,7 +233,7 @@ int cannon(struct robot *r, int degree, int range)
 			else if (distance_from_center <= 40)
 				damage = 3;
 			if (damage && !game_end.tv_sec) {
-				damage = min(damage, 100 - all_robots[i]->damage);
+				damage = MIN(damage, 100 - all_robots[i]->damage);
 				all_robots[i]->damage += damage;
 				r->score += damage;
 			}
