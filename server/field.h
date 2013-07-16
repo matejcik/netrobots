@@ -10,10 +10,10 @@
 #include "toolkit.h"
 
 /* Initialize the rendering of the map.  */
-extern void init_cairo(int *argc, char ***argv);
+void init_cairo(int *argc, char ***argv);
 event_t process_cairo(void);
 
 /* Update the canvas */
-extern void update_display(int finished);
+void update_display(int finished);
 
-#endif /* MAP_H */
+#endif

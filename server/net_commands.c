@@ -9,88 +9,78 @@
 #include "net_utils.h"
 #include "net_defines.h"
 
-int cmd_start (struct robot *robot, int *args);
-int cmd_cycle (struct robot *robot, int *args);
-int cmd_cannon (struct robot *robot, int *args);
-int cmd_scan (struct robot *robot, int *args);
-int cmd_loc_x (struct robot *robot, int *args);
-int cmd_loc_y (struct robot *robot, int *args);
-int cmd_damage (struct robot *robot, int *args);
-int cmd_speed (struct robot *robot, int *args);
-int cmd_drive (struct robot *robot, int *args);
-int cmd_name (struct robot *robot, char **args);
-int cmd_image (struct robot *robot, char **args);
+int cmd_start(struct robot *robot, int *args);
+int cmd_cycle(struct robot *robot, int *args);
+int cmd_cannon(struct robot *robot, int *args);
+int cmd_scan(struct robot *robot, int *args);
+int cmd_loc_x(struct robot *robot, int *args);
+int cmd_loc_y(struct robot *robot, int *args);
+int cmd_damage(struct robot *robot, int *args);
+int cmd_speed(struct robot *robot, int *args);
+int cmd_drive(struct robot *robot, int *args);
+int cmd_name(struct robot *robot, char **args);
+int cmd_image(struct robot *robot, char **args);
 
 cmd_t cmds[] = {
-	{ (cmd_f)cmd_start, 0, CMD_TYPE_INT, false, true }, // START
-	{ (cmd_f)cmd_cycle, 0, CMD_TYPE_INT, true, true }, // CYCLE
-	{ (cmd_f)cmd_cannon, 2, CMD_TYPE_INT, true, false }, // CANNON
-	{ (cmd_f)cmd_scan, 2, CMD_TYPE_INT, true, false }, // SCAN
-	{ (cmd_f)cmd_loc_x, 0, CMD_TYPE_INT, false, false }, // LOC_X
-	{ (cmd_f)cmd_loc_y, 0, CMD_TYPE_INT, false, false }, // LOC_Y
-	{ (cmd_f)cmd_damage, 0, CMD_TYPE_INT, false, false }, // DAMAGE
-	{ (cmd_f)cmd_speed, 0, CMD_TYPE_INT, false, false }, // SPEED
-	{ (cmd_f)cmd_drive, 2, CMD_TYPE_INT, true, false }, // MOVE
-	{ (cmd_f)cmd_name, 1, CMD_TYPE_STR, false, true }, // NAME
-	{ (cmd_f)cmd_image, 1, CMD_TYPE_STR, false, true }, // IMAGE
+	{ (cmd_f)cmd_start, 0, CMD_TYPE_INT, false, true },
+	{ (cmd_f)cmd_cycle, 0, CMD_TYPE_INT, true, true },
+	{ (cmd_f)cmd_cannon, 2, CMD_TYPE_INT, true, false },
+	{ (cmd_f)cmd_scan, 2, CMD_TYPE_INT, true, false },
+	{ (cmd_f)cmd_loc_x, 0, CMD_TYPE_INT, false, false },
+	{ (cmd_f)cmd_loc_y, 0, CMD_TYPE_INT, false, false },
+	{ (cmd_f)cmd_damage, 0, CMD_TYPE_INT, false, false },
+	{ (cmd_f)cmd_speed, 0, CMD_TYPE_INT, false, false },
+	{ (cmd_f)cmd_drive, 2, CMD_TYPE_INT, true, false },
+	{ (cmd_f)cmd_name, 1, CMD_TYPE_STR, false, true },
+	{ (cmd_f)cmd_image, 1, CMD_TYPE_STR, false, true },
 };
+
+int cmdn = sizeof(cmds) / sizeof(cmd_t);
 
 result_t error_res = { -1, true, false };
 result_t block_res = { 0, true, false };
 
-int cmdn = sizeof(cmds)/sizeof(cmd_t);
-
-
-int
-cmd_start (struct robot *robot, int *args)
+int cmd_start(struct robot *robot, int *args)
 {
 	return (timerisset(&game_start) ? 1 : -2);
 }
 
-int
-cmd_cycle (struct robot *robot, int *args)
+int cmd_cycle(struct robot *robot, int *args)
 {
 	return !!timerisset(&game_start);
 }
 
-int 
-cmd_scan (struct robot *robot, int *args)   
+int cmd_scan(struct robot *robot, int *args)
 {
 	return scan(robot, args[0], args[1]);
 }
 
-int 
-cmd_cannon (struct robot *robot, int *args)   
+int cmd_cannon(struct robot *robot, int *args)
 {
 	return cannon(robot, args[0], args[1]);
 }
 
-int 
-cmd_loc_x (struct robot *robot, int *args)   
+int cmd_loc_x(struct robot *robot, int *args)
 {
 	return loc_x(robot);
 }
 
-int 
-cmd_loc_y (struct robot *robot, int *args)   
+int cmd_loc_y(struct robot *robot, int *args)
 {
 	return loc_y(robot);
 }
 
-int 
-cmd_damage (struct robot *robot, int *args)   
+int cmd_damage(struct robot *robot, int *args)
 {
 	return damage(robot);
 }
 
-int 
-cmd_speed (struct robot *robot, int *args)   
+int cmd_speed(struct robot *robot, int *args)
 {
 	return speed(robot);
 }
 
-int
-cmd_drive (struct robot *robot, int *args)
+int cmd_drive(struct robot *robot, int *args)
 {
 	drive(robot, args[0], args[1]);
 	return 1;
@@ -120,8 +110,7 @@ int cmd_image(struct robot *robot, char **args)
 	return !!robot->img;
 }
 
-result_t
-execute_cmd (struct robot *robot, char *input, int phase)
+result_t execute_cmd(struct robot *robot, char *input, int phase)
 {
 	char **argv;
 	int argc, ret, i;
@@ -166,7 +155,8 @@ execute_cmd (struct robot *robot, char *input, int phase)
 	}
 
 	ret = cmd.func(robot, args);
-	ndprintf(stdout, "[COMMAND] %s -> %d recived - %g %g %d\n", argv[0], ret, robot->x, robot->y, robot->damage);
+	ndprintf(stdout, "[COMMAND] %s -> %d recived - %g %g %d\n",
+		 argv[0], ret, robot->x, robot->y, robot->damage);
 	if (ret == -1)
 		goto out;
 	if (ret == -2) {

@@ -16,15 +16,16 @@
 #include "robotserver.h"
 #include "toolkit.h"
 
-#define STD_CYCLES 10000
-#define STD_HOSTNAME NULL
-#define STD_PORT "4300"
+#define STD_CYCLES	10000
+#define STD_HOSTNAME	NULL
+#define STD_PORT	"4300"
 
 int autostart_robots = 0;
 struct pollfd *fds;
 int sockd;
 
 extern int debug;
+
 int save_results = 0;
 int max_robots = 0;
 int dead_robots;
@@ -40,7 +41,8 @@ struct robot **ranking;
 struct timeval game_start;
 struct timeval game_end;
 
-static int quad = 0;
+static volatile int timer;
+static int winner;
 
 float get_color_component(unsigned n, unsigned shade)
 {
@@ -69,20 +71,22 @@ void generate_color(float *color)
 	}
 }
 
-int
-create_client (int fd)
+int create_client(int fd)
 {
 	struct robot *r;
+	static int quad = 0;
 
 	if (fd == -1)
 		return 0;
-	if (!(r = (struct robot *) malloc (sizeof(struct robot))))
+
+	r = malloc(sizeof(struct robot));
+	if (!r)
 		return 0;
 	memset (r, 0, sizeof (*r));
 
 	/* place each robot in a different quadrant.  */
-	r->x = ((quad & 1) ? 0 : 500) + 500 * (random() / (double) RAND_MAX);
-	r->y = ((quad & 2) ? 0 : 500) + 500 * (random() / (double) RAND_MAX);
+	r->x = ((quad & 1) ? 0 : 500) + 500 * (random() / (double)RAND_MAX);
+	r->y = ((quad & 2) ? 0 : 500) + 500 * (random() / (double)RAND_MAX);
 	quad++;
 
 	generate_color(r->color);
@@ -94,16 +98,12 @@ create_client (int fd)
 	return 1;
 }
 
-static volatile int timer;
-static int winner;
-
-void raise_timer (int sig)
+void raise_timer(int sig)
 {
 	timer = 1;
 }
 
-int
-process_robots (int phase)
+int process_robots(int phase)
 {
 	int i, ret, rfd;
 	struct pollfd *pfd;
@@ -134,7 +134,8 @@ process_robots (int phase)
 		for (i = 0; i < max_robots; i++) {
 			robot = all_robots[i];
 			pfd = &fds[i];
-			if (pfd->fd == -1) // Dead robot
+			if (pfd->fd == -1)
+				/* dead robot */
 				continue;
 			if (robot->waiting) {
 				to_talk--;
@@ -143,7 +144,8 @@ process_robots (int phase)
 			if (pfd->events == 0)
 				to_talk--;
 
-			if (pfd->revents & (POLLERR | POLLHUP)) { /* Error or disconnected robot -> kill */
+			if (pfd->revents & (POLLERR | POLLHUP)) {
+				/* error or disconnected robot -> kill */
 				close(pfd->fd);
 				pfd->fd = -1;
 				kill_robot(robot);
@@ -168,43 +170,42 @@ process_robots (int phase)
 
 			ret = read(pfd->fd, buf, STD_BUF);
 			switch (ret) {
-				case -1:
-				case 0:
-					close(pfd->fd);
-					pfd->fd = -1;
-					kill_robot(robot);
-					break;
-				default:
-					buf[ret] = '\0';
-					result = execute_cmd(robot, buf, phase);
-					if (result.error) {
-						if (result.result < 0) {
-							sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
-							close(pfd->fd);
-							pfd->fd = -1;
-							kill_robot(robot);
-						} else
-							robot->waiting = 1;
-					}
-					else {
-						if (result.cycle)
-							pfd->events = 0;
-						sockwrite(pfd->fd, OK, "%d", result.result);
-					}
-					break;
+			case -1:
+			case 0:
+				close(pfd->fd);
+				pfd->fd = -1;
+				kill_robot(robot);
+				break;
+			default:
+				buf[ret] = '\0';
+				result = execute_cmd(robot, buf, phase);
+				if (result.error) {
+					if (result.result < 0) {
+						sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
+						close(pfd->fd);
+						pfd->fd = -1;
+						kill_robot(robot);
+					} else
+						robot->waiting = 1;
+				}
+				else {
+					if (result.cycle)
+						pfd->events = 0;
+					sockwrite(pfd->fd, OK, "%d", result.result);
+				}
+				break;
 			}
 		}
 	} while ((to_talk || phase != 1) && !timer);
 	return 0;
 }
 
-void
-server_start (char *hostname, char *port)
+void server_start(char *hostname, char *port)
 {
 	int ret, opt = 1;
 	struct addrinfo *ai, *runp, hints;
 
-	memset (&hints, 0x0, sizeof (hints));
+	memset(&hints, 0x0, sizeof (hints));
 	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
 
@@ -213,7 +214,8 @@ server_start (char *hostname, char *port)
 		ndprintf(stdout, "[INFO] Number of players: %d\n", autostart_robots);
 
 	if ((ret = getaddrinfo(hostname, port, &hints, &ai)))
-		ndprintf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s\n", hostname, port, gai_strerror(ret));
+		ndprintf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s\n",
+			     hostname, port, gai_strerror(ret));
 	if (!ai)
 		ndprintf_die(stderr, "[ERROR] getaddrinf(): couldn't fill the struct!\n");
 
@@ -323,59 +325,58 @@ void server_finished_cycle(event_t event)
 	process_robots(2);
 }
 
-void
-usage (char *prog, int retval)
+void usage(char *prog, int retval)
 {
 	printf("Usage %s [OPTIONS]\n"
-		"\t-n <clients>\tNumber of clients to start the game, 0 for dynamic (Default: 0)\n"
-		"\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
-		"\t-P <port>\tSpecifies port (Default: 4300)\n"
-		"\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
-		"\t-t\tTime based game (Default: score based game)\n"
-		"\t-s\tSave results to ./results.txt\n"
-		"\t-d\tEnables debug mode\n", prog);
+	       "\t-n <clients>\tNumber of clients to start the game, 0 for dynamic (Default: 0)\n"
+	       "\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
+	       "\t-P <port>\tSpecifies port (Default: 4300)\n"
+	       "\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
+	       "\t-t\tTime based game (Default: score based game)\n"
+	       "\t-s\tSave results to ./results.txt\n"
+	       "\t-d\tEnables debug mode\n", prog);
 	exit(retval);
 }
 
-int 
-server_init (int argc, char *argv[])
+int server_init(int argc, char *argv[])
 {
 	int retval;
 
-	char *port = STD_PORT, *hostname = STD_HOSTNAME;
+	char *port = STD_PORT;
+	char *hostname = STD_HOSTNAME;
 
 	while ((retval = getopt(argc, argv, "dn:hH:P:c:ts")) != -1) {
 		switch (retval) {
-			case 'c':
-				max_cycles = atoi(optarg);
-				break;	
-			case 'H':
-				hostname = optarg;
-				break;
-			case 'P':
-				port = optarg;
-				break;
-			case 'd':
-				debug = 1;
-				break;
-			case 'n':
-				autostart_robots = atoi(optarg);
-				break;
-			case 't':
-				game_type = GAME_TIME;
-				break;
-			case 's':
-				save_results = 1;
-				break;
-			case 'h':
-				usage(argv[0], EXIT_SUCCESS);
-				break;
-			default:
-				break;
+		case 'c':
+			max_cycles = atoi(optarg);
+			break;
+		case 'H':
+			hostname = optarg;
+			break;
+		case 'P':
+			port = optarg;
+			break;
+		case 'd':
+			debug = 1;
+			break;
+		case 'n':
+			autostart_robots = atoi(optarg);
+			break;
+		case 't':
+			game_type = GAME_TIME;
+			break;
+		case 's':
+			save_results = 1;
+			break;
+		case 'h':
+			usage(argv[0], EXIT_SUCCESS);
+			break;
+		default:
+			break;
 		}
 	}
 
-	if (argc > optind) /* || !hostname || !port)*/
+	if (argc > optind)
 		usage(argv[0], EXIT_FAILURE);
 
 	if (autostart_robots > MAX_ROBOTS)
@@ -384,11 +385,11 @@ server_init (int argc, char *argv[])
 	if (max_cycles <= 1)
 		max_cycles = STD_CYCLES;
 
-	all_robots = (struct robot **) malloc(MAX_ROBOTS * sizeof(struct robot *));
-	ranking = (struct robot **) malloc(MAX_ROBOTS * sizeof(struct robot *));
+	all_robots = malloc(MAX_ROBOTS * sizeof(struct robot *));
+	ranking = malloc(MAX_ROBOTS * sizeof(struct robot *));
 	dead_robots = 0;
 
 	server_start(hostname, port);
-	signal (SIGALRM, raise_timer);
+	signal(SIGALRM, raise_timer);
 	return 0;
 }

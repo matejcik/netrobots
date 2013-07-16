@@ -1,5 +1,5 @@
 #ifndef NET_DEFINES_H
-#define NET_DEFINES_H 1
+#define NET_DEFINES_H
 
 #include <stdbool.h>
 
@@ -27,8 +27,7 @@ typedef struct result_t {
 	bool cycle;
 } result_t;
 
-
 void init_server(char *hostname, char *port);
-result_t execute_cmd (struct robot *robot, char *input, int phase);
+result_t execute_cmd(struct robot *robot, char *input, int phase);
 
 #endif
