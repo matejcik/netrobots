@@ -124,7 +124,7 @@ int damage(struct robot *r)
 	return r->damage;
 }
 
-int standardizeDegree(int degree)
+int standardize_degree(int degree)
 {
 	int result = degree;
 	if (degree < 0) {
@@ -133,7 +133,7 @@ int standardizeDegree(int degree)
 	return result % 360;
 }
 
-int getDistance(int x1, int y1, int x2, int y2)
+int get_distance(int x1, int y1, int x2, int y2)
 {
 	int x, y;
 	x = x2 - x1;
@@ -143,7 +143,7 @@ int getDistance(int x1, int y1, int x2, int y2)
 
 int compute_angle(int x1, int y1, int x2, int y2)
 {
-	return standardizeDegree(atan2(y2 - y1, x2 - x1) * 180 / M_PI);
+	return standardize_degree(atan2(y2 - y1, x2 - x1) * 180 / M_PI);
 }
 
 int angle_in(int angle, int lower, int upper)
@@ -169,7 +169,7 @@ int scan(struct robot *r, int degree, int resolution)
 	if (resolution > 10 || resolution < 0)
 		return -1;
 
-	degree = standardizeDegree(degree);
+	degree = standardize_degree(degree);
 
 	r->radar_degree = degree;
 
@@ -184,8 +184,8 @@ int scan(struct robot *r, int degree, int resolution)
 						     all_robots[i]->x, all_robots[i]->y);
 
 		if (angle_in(angle_between_robots, bottom_angle, upper_angle)) {
-			distance = getDistance(posx, posy,
-					       all_robots[i]->x, all_robots[i]->y);
+			distance = get_distance(posx, posy,
+						all_robots[i]->x, all_robots[i]->y);
 			if (distance < min_distance && distance != 0)
 				min_distance = distance;
 		}
@@ -216,7 +216,7 @@ int cannon(struct robot *r, int degree, int range)
 	if (range > 700)
 		range = 700;
 
-	degree = standardizeDegree(degree);
+	degree = standardize_degree(degree);
 
 	r->cannon_degree = degree;
 
@@ -225,7 +225,7 @@ int cannon(struct robot *r, int degree, int range)
 
 	for (i = 0; i < max_robots; i++) {
 		if (all_robots[i]->damage < 100) {
-			distance_from_center = getDistance(all_robots[i]->x, all_robots[i]->y, x, y);
+			distance_from_center = get_distance(all_robots[i]->x, all_robots[i]->y, x, y);
 			damage = 0;
 			if (distance_from_center <= 5)
 				damage = 10;
@@ -251,7 +251,7 @@ int cannon(struct robot *r, int degree, int range)
 
 void drive(struct robot *r, int degree, int speed)
 {
-	degree = standardizeDegree(degree);
+	degree = standardize_degree(degree);
 	if (r->speed >= 50)
 		degree = r->degree;
 

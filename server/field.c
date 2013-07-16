@@ -31,7 +31,7 @@ double degtorad(int degrees)
 	return radiants;
 }
 
-double _getDistance(double x1, double y1, double x2, double y2)
+double _get_distance(double x1, double y1, double x2, double y2)
 {
 	double x, y;
 	x = x2 - x1;
@@ -72,7 +72,7 @@ void shot_animation(cairo_t *cr, double size, double direction, struct cannon *c
 	cairo_save(cr);
 	cairo_translate(cr, origin_x, origin_y);
 	cairo_rotate(cr, direction);
-	dist = _getDistance(origin_x, origin_y, can->x, can->y);
+	dist = _get_distance(origin_x, origin_y, can->x, can->y);
 	cairo_move_to(cr, dist, -5);
 	cairo_line_to(cr, 0, 0);
 	cairo_line_to(cr, dist, 5);
