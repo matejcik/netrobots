@@ -226,7 +226,7 @@ draw_stats(cairo_t *cr, struct robot **all)
 {
 	int i;
 	int space = 25;
-	cairo_pattern_t *pat;
+	static cairo_pattern_t *pat = NULL;
 	cairo_text_extents_t ext;
 
 	cairo_save(cr);
@@ -239,9 +239,13 @@ draw_stats(cairo_t *cr, struct robot **all)
 	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
 			       CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size(cr, 13.0);
-	pat = cairo_pattern_create_linear(100, 0, 0, 0);
-	cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);
-	cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
+
+	if (!pat) {
+		pat = cairo_pattern_create_linear(100, 0, 0, 0);
+		cairo_pattern_add_color_stop_rgba(pat, 1, 1, 0, 0, 1);
+		cairo_pattern_add_color_stop_rgba(pat, 0.7, 1, 1, 0, 1);
+		cairo_pattern_add_color_stop_rgba(pat, 0, 0, 1, 0, 1);
+	}
 
 	for(i = 0; i < max_robots; i++){
 		_draw_robot(cr, all[i]->img, 15, 16 + i * space, 0, 0, 0, all[i]->color,
@@ -276,7 +280,6 @@ draw_stats(cairo_t *cr, struct robot **all)
 			cairo_fill(cr);
 		}
 	}
-	cairo_pattern_destroy(pat);
 	cairo_restore(cr);
 }
 
