@@ -286,9 +286,9 @@ static void cycle_robot(struct robot *r)
 	}
 
 	for (i = 0; i < max_robots; i++) {
-		if ((int)r->x == (int)all_robots[i]->x &&
-		    (int)r->y == (int)all_robots[i]->y &&
-		    all_robots[i] != r) {
+		if (all_robots[i] != r &&
+		    (int)r->x == (int)all_robots[i]->x &&
+		    (int)r->y == (int)all_robots[i]->y) {
 			r->damage += 2;
 			r->speed = 0;
 			r->break_distance = 0;
