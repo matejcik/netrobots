@@ -345,11 +345,6 @@ draw (cairo_t *cr)
 	}
 	cairo_restore(cr);	
 	draw_stats(cr, all_robots);
-/* cairo_save (cairo_context);
-  cairo_set_operator (cairo_context, CAIRO_OPERATOR_SOURCE);
-  cairo_set_source_surface (cairo_context, cairo_get_target (map_context), 0, 0);
-  cairo_paint (cairo_context);
-  cairo_restore (cairo_context);*/
 }
 
 void

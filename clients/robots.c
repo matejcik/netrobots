@@ -177,7 +177,6 @@ scan (int degree,int resolution)
 	int ret;
 	/* Send the command */
 	ret = sockwrite(serverfd, SCAN, "%d %d", degree, resolution);
-	/* Retrieve response : TODO ... */
 	return get_resp_value(ret);	
 }
 

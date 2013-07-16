@@ -172,8 +172,6 @@ scan (struct robot *r, int degree, int resolution)
 	int posy = r->y;
 	int i,angle_between_robots,upper_angle,bottom_angle;
 	int distance;
-	//printf("x %d\n", posx);
-	//printf("y %d\n", posy);
 
 	if(resolution > 10 || resolution < 0){
 		return -1;
@@ -183,7 +181,6 @@ scan (struct robot *r, int degree, int resolution)
 	
 	r->radar_degree = degree;
 	
-	//printf("degree %d\n", degree);
 	upper_angle = degree + resolution;
 	bottom_angle = degree - resolution;
 
@@ -228,12 +225,8 @@ cannon (struct robot *r, int degree, int range)
 	
 	r->cannon_degree = degree;
 	
-	//printf("Degree %d, Cos %g, Sin %g\n", degree, cos(degree * M_PI/180), sin(degree * M_PI/180));
-	
 	x = cos(degree * M_PI/180) * range + r->x;
 	y = sin(degree * M_PI/180) * range + r->y;
-	
-	//printf("x%d, y%d\n", x,y);
 	
 	for(i = 0; i < max_robots; i++){
 		if(all_robots[i]->damage < 100){
@@ -324,8 +317,6 @@ cycle_robot(struct robot *r)
 	
 	r->x += cos(r->degree * M_PI/180) * r->speed * SPEED_RATIO;
 	r->y += sin(r->degree * M_PI/180) * r->speed * SPEED_RATIO;
-	
-	//printf("Degree %d, Cos %g, Sin %g, Speed %d\n", r->degree , cos(r->degree  * M_PI/180), sin(r->degree  * M_PI/180), r->speed);
 	
 	if(r->break_distance == 0)
 		r->speed = r->target_speed;
