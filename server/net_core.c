@@ -40,14 +40,34 @@ struct robot **ranking;
 struct timeval game_start;
 struct timeval game_end;
 
-float get_rand_color() {
-	float color = (float) (random() /(double) RAND_MAX) ;
-	if(color < 0.1) color = 0.1;
-	if(color > 0.9) color = 0.9;
-	return color;
+static int quad = 0;
+
+float get_color_component(unsigned n, unsigned shade)
+{
+	return (float)((2 - shade) * n) / 2;
 }
 
-static int quad = 0;
+void generate_color(float *color)
+{
+	static unsigned mask = 0;
+	static unsigned value = 0;
+	unsigned m, v;
+	int i;
+
+	do {
+		if (++value > 7) {
+			value = 1;
+			mask++;
+		}
+	} while ((value & mask) != mask || (value ^ mask) == 7);
+	m = mask;
+	v = value;
+	for (i = 0; i < 3; i++) {
+		color[i] = get_color_component(v & 1, m & 1);
+		m >>= 1;
+		v >>= 1;
+	}
+}
 
 int
 create_client (int fd)
@@ -65,9 +85,7 @@ create_client (int fd)
 	r->y = ((quad & 2) ? 0 : 500) + 500 * (random() / (double) RAND_MAX);
 	quad++;
 
-	r->color[0] = get_rand_color();
-	r->color[1] = get_rand_color();
-	r->color[2] = get_rand_color();
+	generate_color(r->color);
 
 	r->life_length.tv_sec = -1;
 
