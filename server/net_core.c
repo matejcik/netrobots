@@ -141,8 +141,10 @@ int process_robots(int phase)
 				to_talk--;
 				continue;
 			}
-			if (pfd->events == 0)
+			if (pfd->events == 0) {
 				to_talk--;
+				continue;
+			}
 
 			if (pfd->revents & (POLLERR | POLLHUP)) {
 				/* error or disconnected robot -> kill */
@@ -169,31 +171,28 @@ int process_robots(int phase)
 			}
 
 			ret = read(pfd->fd, buf, STD_BUF);
-			switch (ret) {
-			case -1:
-			case 0:
+			if (ret <= 0) {
 				close(pfd->fd);
 				pfd->fd = -1;
 				kill_robot(robot);
-				break;
-			default:
-				buf[ret] = '\0';
-				result = execute_cmd(robot, buf, phase);
-				if (result.error) {
-					if (result.result < 0) {
-						sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
-						close(pfd->fd);
-						pfd->fd = -1;
-						kill_robot(robot);
-					} else
-						robot->waiting = 1;
-				}
-				else {
-					if (result.cycle)
-						pfd->events = 0;
-					sockwrite(pfd->fd, OK, "%d", result.result);
-				}
-				break;
+				continue;
+			}
+			buf[ret] = '\0';
+
+			result = execute_cmd(robot, buf, phase);
+			if (result.error) {
+				if (result.result < 0) {
+					sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
+					close(pfd->fd);
+					pfd->fd = -1;
+					kill_robot(robot);
+				} else
+					robot->waiting = 1;
+			}
+			else {
+				if (result.cycle)
+					pfd->events = 0;
+				sockwrite(pfd->fd, OK, "%d", result.result);
 			}
 		}
 	} while ((to_talk || phase != 1) && !timer);
