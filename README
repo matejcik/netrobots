@@ -6,6 +6,9 @@ University of Lugano (http://www.inf.unisi.ch).  This code was written
 by seven 3rd semester students (with aid from the TA) in a week, working
 on average 2-3 hours every day.
 
+It was further modified for Programmers Summer Camp 2013 held in Janske
+Lazne, Czech Republic, by Jiri Benc.
+
 The game is mostly based on CROBOTS (see
 http://en.wikipedia.org/wiki/Crobots for more info), with the following
 main differences: 1) the game logic was designed from scratch based on
@@ -18,18 +21,20 @@ sin/cos/atan functions.  4) divisions by zero will *crash* the robot
 
 Here is the structure:
 
-   fight    -  Driver to start a robot fight!
+   fight     -  Driver to start a robot fight!
 
-   Makefile -  Makefile to build the sample robots and the server
+   Makefile  -  Makefile to build the sample robots and the server
 
-   doc/     -  LaTeX documentation, based on CROBOTS by Tom Poindexter.
+   doc/      -  LaTeX documentation, based on CROBOTS by Tom Poindexter.
 
-   server/  -  Source code for the server, released under the GPL (should
-               work on MacOS and Linux).
+   server/   -  Source code for the server, released under the GPL (should
+                work on MacOS and Linux).
 
-   clients/ -  Source code for five sample robots (four rewrites of the
-               samples provided with CROBOTS, and a rewrite of ESPOTRUN.R)
-               and for the client, in the public domain.
+   lib/      -  Library for writing robots, released under the LGPL.
+
+   examples/ -  Source code for five sample robots (four rewrites of the
+                samples provided with CROBOTS, and a rewrite of ESPOTRUN.R),
+                in the public domain.
 
 
 The code is released hoping that other people can help improving it.
@@ -37,15 +42,15 @@ The code is released hoping that other people can help improving it.
 Usage
 =====
 
-For how to program a robot, see doc/robots.tex.
+For how to program a robot, see doc/robots.tex (outdated).
 
-To compile the program (right now it only works on MacOS X, see below!) do
+To compile the server, library and examples, do
 
-   make
+   make all
 
 To start a fight, use the enclosed fight script as follows:
 
-   ./fight ./counter ./rook ./sniper ./spot
+   ./fight counter rook sniper spot
 
 This will start the four enclosed "fighter" robots (the fifth, "rabbit",
 does not shoot at all and can be used to start training your own robots).
@@ -69,19 +74,17 @@ Possible tasks include:
 
 - medium: Windows port of the C client library
 
-- medium: integrate the "fight" script into the server.
-
 
 Known bugs
 ==========
 
-None. :-)
+There are some.
 
 
 Credits
 =======
 
-The authors of the initial release are:
+The authors of the initial release were:
 
     game logic     Davide Arrigo
                    Masiar Babazadeh
@@ -95,3 +98,6 @@ The authors of the initial release are:
 
     coordination   Paolo Bonzini <bonzini@gnu.org>
 
+Later modifications by:
+
+    Jiri Benc <jbenc@upir.cz>
