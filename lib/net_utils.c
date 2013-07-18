@@ -122,19 +122,21 @@ void printf_die(FILE *fd, char *fmt, int err, ...)
 int sockwrite(int fd, int status, char *fmt, ...)
 {
 	char *str, *tmp;
-	int ret;
+	int ret, len;
 	va_list vp;
 
+	str = malloc(STD_BUF);
+	if (!str)
+		return -1;
+	len = sprintf(str, "%d", status);
 	if (fmt) {
+		tmp = str + len;
+		*tmp++ = ' ';
 		va_start(vp, fmt);
-		vasprintf(&tmp, fmt, vp);
+		vsnprintf(tmp, STD_BUF - len - 1, fmt, vp);
 		va_end(vp);
-		asprintf(&str, "%d %s", status, tmp);
-	} else
-		asprintf(&str, "%d", status);
+	}
 	ret = write(fd, str, strlen(str));
-	if (fmt)
-		free(tmp);
 	free(str);
 	return ret;
 }
