@@ -51,7 +51,7 @@ static int eval_response(int resp)
 		break;
 	case ERROR:
 	default:
-		printf_die(stderr, "Error detected.. exiting!\n", 2);
+		printf_die(stderr, "Error detected... exiting!\n", 2);
 		break;
 	}
 	return resp;
@@ -99,7 +99,7 @@ static int client_init(char *remotehost, char *port)
 		printf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s\n",
 			   EXIT_FAILURE, remotehost, port, gai_strerror(ret));
 	if (!ai)
-		printf_die(stderr, "[ERROR] getaddrinf(): couldn't fill the struct!\n",
+		printf_die(stderr, "[ERROR] getaddrinfo(): no address returned\n",
 			   EXIT_FAILURE);
 
 	runp = ai;
@@ -108,7 +108,7 @@ static int client_init(char *remotehost, char *port)
 		if (sock != -1) {
 			ndprintf(stdout, "[NETWORK] Connecting to server...\n");
 			if (connect(sock, runp->ai_addr, runp->ai_addrlen) == 0) {
-				ndprintf(stdout, "[NETWORK] connected to server\n");
+				ndprintf(stdout, "[NETWORK] Connected.\n");
 				serverfd = sock;
 				break;
 			}
@@ -135,8 +135,8 @@ static void set_default_name(char *argv0)
 
 void usage(char *prog, int retval)
 {
-	printf("Usage %s [-n <clients> -H <hostname> -P <port> -d]\n"
-	       "\t-H <remothost>\tSpecifies hostname (Default: 127.0.0.1)\n"
+	printf("Usage: %s [-H <hostname>] [-P <port>] [-d]\n"
+	       "\t-H <remotehost>\tSpecifies hostname (Default: 127.0.0.1)\n"
 	       "\t-P <port>\tSpecifies port (Default: 4300)\n"
 	       "\t-d\tEnables debug mode\n", prog);
 	exit(retval);
@@ -304,7 +304,7 @@ int image(char *path)
 	rewind(f);
 	data = malloc(fsize);
 	if (!data) {
-		ndprintf(stderr, "[WARNING] Cannot alloc memory\n");
+		ndprintf(stderr, "[WARNING] Cannot allocate memory\n");
 		goto out_close;
 	}
 	if (fread(data, 1, fsize, f) != (size_t)fsize) {
