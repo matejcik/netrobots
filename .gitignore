@@ -1,0 +1,11 @@
+*.o
+libnetrobots.so
+robotserver
+examples/counter
+examples/rabbit
+examples/rook
+examples/sniper
+examples/spot
+tags
+TAGS
+results.txt
