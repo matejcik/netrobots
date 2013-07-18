@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "netrobots.h"
 #include "net_utils.h"
@@ -38,6 +39,7 @@ static int serverfd;
 
 void start(void);
 void set_name(char *name);
+int image(char *path);
 
 static int eval_response(int resp)
 {
@@ -78,7 +80,7 @@ static int get_resp_value(int ret)
 		free(argv);
 	}
 	if (ret == -1)
-		printf_die(stdout, "Server probably dead or you have been killed!\n");
+		printf_die(stdout, "Server probably dead or you have been killed!\n", 1);
 	return result;
 }
 
@@ -92,7 +94,8 @@ static int client_init(char *remotehost, char *port)
 	hints.ai_flags = AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if (ret = getaddrinfo(remotehost, port, &hints, &ai))
+	ret = getaddrinfo(remotehost, port, &hints, &ai);
+	if (ret)
 		printf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s\n",
 			   EXIT_FAILURE, remotehost, port, gai_strerror(ret));
 	if (!ai)
@@ -304,7 +307,7 @@ int image(char *path)
 		ndprintf(stderr, "[WARNING] Cannot alloc memory\n");
 		goto out_close;
 	}
-	if (fread(data, 1, fsize, f) != fsize) {
+	if (fread(data, 1, fsize, f) != (size_t)fsize) {
 		ndprintf(stderr, "[WARNING] Error reading from %s\n", path);
 		goto out_free;
 	}

@@ -16,7 +16,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
+#include <time.h>
 #include <sys/time.h>
 
 #include "toolkit.h"
@@ -29,7 +31,6 @@ int main(int argc, char **argv)
 	struct timeval start_ticks, end_ticks;
 	int phase = 0;
 	event_t event;
-	cairo_t *cairo_context;
 
 	srandom(time(NULL) + getpid());
 	server_init(argc, argv);

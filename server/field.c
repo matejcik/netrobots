@@ -30,7 +30,6 @@
 #include "robotserver.h"
 #include "net_utils.h"
 
-static cairo_t *map_context;
 static cairo_t *cr;
 
 /*
@@ -51,7 +50,7 @@ double _get_distance(double x1, double y1, double x2, double y2)
 	return sqrt(x*x + y*y);
 }
 
-void shot_animation(cairo_t *cr, double size, double direction, struct cannon *can,
+void shot_animation(cairo_t *cr, double direction, struct cannon *can,
 		    double origin_x, double origin_y)
 {
 	double dist;
@@ -200,9 +199,9 @@ void draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 	_draw_robot(cr, myRobot->img, myRobot->x, myRobot->y, myRobot->degree,
 		    myRobot->cannon_degree, myRobot->radar_degree, myRobot->color,
 		    0, size);
-	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
+	shot_animation(cr, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
 		       myRobot->x, myRobot->y);
-	shot_animation(cr, size, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
+	shot_animation(cr, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
 		       myRobot->x, myRobot->y);
 }
 

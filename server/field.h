@@ -22,6 +22,7 @@
 
 /* Initialize the rendering of the map.  */
 void init_cairo(int *argc, char ***argv);
+void destroy_cairo();
 event_t process_cairo(void);
 
 /* Update the canvas */

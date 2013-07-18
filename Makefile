@@ -8,7 +8,7 @@ library: libnetrobots.so
 server: robotserver
 all: server library examples
 
-CFLAGS = -g -Wuninitialized -O2 -Ilib
+CFLAGS = -g -W -Wall -Wno-unused-parameter -O2 -Ilib
 
 ## library
 

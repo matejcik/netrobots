@@ -20,6 +20,7 @@
 #include <stdbool.h>
 
 #include "robotserver.h"
+#include "toolkit.h"
 #include "net_command_list.h"
 
 typedef enum cmd_type_t {
@@ -27,7 +28,7 @@ typedef enum cmd_type_t {
 	CMD_TYPE_STR,
 } cmd_type_t;
 
-typedef (*cmd_f)(struct robot *robot, void *args);
+typedef int (*cmd_f)(struct robot *robot, void *args);
 
 typedef struct cmd_t {
 	cmd_f func;
@@ -43,7 +44,11 @@ typedef struct result_t {
 	bool cycle;
 } result_t;
 
-void init_server(char *hostname, char *port);
+int server_init(int argc, char *argv[]);
+int server_process_connections(event_t event);
+int server_cycle(event_t event);
+void server_finished_cycle(event_t event);
+
 result_t execute_cmd(struct robot *robot, char *input, int phase);
 
 #endif

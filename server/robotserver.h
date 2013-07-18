@@ -50,7 +50,7 @@ struct robot {
 	float color[3];
 	cairo_surface_t *img;
 	void *data;
-	int data_len, data_ptr;
+	unsigned int data_len, data_ptr;
 };
 
 extern struct robot **all_robots;

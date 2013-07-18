@@ -118,13 +118,15 @@ event_t process_toolkit(cairo_t **cr)
 	/* check for user hitting close-window widget */
 	if (event.type == SDL_QUIT)
 		return EVENT_QUIT;
-	if (event.type = SDL_KEYDOWN) {
+	if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
 		case SDLK_q:
 			return EVENT_QUIT;
 		case SDLK_s:
 		case SDLK_RETURN:
 			return EVENT_START;
+		default:
+			break;
 		}
 	}
 	return EVENT_NONE;

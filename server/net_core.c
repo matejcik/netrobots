@@ -31,6 +31,7 @@
 #include "net_defines.h"
 #include "robotserver.h"
 #include "toolkit.h"
+#include "field.h"
 
 #define STD_CYCLES	10000
 #define STD_HOSTNAME	NULL
@@ -58,7 +59,6 @@ struct timeval game_start;
 struct timeval game_end;
 
 static volatile int timer;
-static int winner;
 
 float get_color_component(unsigned n, unsigned shade)
 {
