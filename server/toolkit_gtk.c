@@ -101,15 +101,3 @@ event_t process_toolkit(cairo_t **cr)
 	last_event = EVENT_NONE;
 	return res;
 }
-
-cairo_surface_t *toolkit_load_image(char *path)
-{
-	cairo_surface_t *result;
-
-	result = cairo_image_surface_create_from_png(path);
-	if (cairo_surface_status(result) != CAIRO_STATUS_SUCCESS) {
-		cairo_surface_destroy(result);
-		result = NULL;
-	}
-	return result;
-}

@@ -259,7 +259,40 @@ void set_name(char *name)
 
 int image(char *path)
 {
-	int ret;
-	ret = sockwrite(serverfd, IMAGE, "%.60s", path);
-	return get_resp_value(ret);
+	FILE *f;
+	void *data;
+	long fsize;
+	int ret = 0;
+
+	f = fopen(path, "rb");
+	if (!f) {
+		ndprintf(stderr, "[WARNING] Cannot find file %s\n", path);
+		return 0;
+	}
+	fseek(f, 0, SEEK_END);
+	fsize = ftell(f);
+	if (fsize < 0 || fsize > MAX_IMAGE_BYTES) {
+		ndprintf(stderr, "[WARNING] File %s longer than %d bytes\n",
+			 path, MAX_IMAGE_BYTES);
+		goto out_close;
+	}
+	rewind(f);
+	data = malloc(fsize);
+	if (!data) {
+		ndprintf(stderr, "[WARNING] Cannot alloc memory\n");
+		goto out_close;
+	}
+	if (fread(data, 1, fsize, f) != fsize) {
+		ndprintf(stderr, "[WARNING] Error reading from %s\n", path);
+		goto out_free;
+	}
+	ret = sockwrite(serverfd, IMAGE, "%ld", fsize);
+	get_resp_value(ret);
+	ret = write(serverfd, data, fsize);
+	get_resp_value(ret);
+out_free:
+	free(data);
+out_close:
+	fclose(f);
+	return ret;
 }

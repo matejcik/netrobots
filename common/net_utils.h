@@ -7,6 +7,8 @@
 #define STD_ALLOC	4
 #define STD_BUF		64
 
+#define MAX_IMAGE_BYTES	(100 * 1024)
+
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
 #define MIN(a, b)	((a) < (b) ? (a) : (b))
 

@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
+#include <assert.h>
 
 #include "robotserver.h"
-#include "toolkit.h"
 #include "net_utils.h"
 #include "net_defines.h"
 
@@ -19,7 +19,7 @@ int cmd_damage(struct robot *robot, int *args);
 int cmd_speed(struct robot *robot, int *args);
 int cmd_drive(struct robot *robot, int *args);
 int cmd_name(struct robot *robot, char **args);
-int cmd_image(struct robot *robot, char **args);
+int cmd_image(struct robot *robot, int *args);
 
 cmd_t cmds[] = {
 	{ (cmd_f)cmd_start, 0, CMD_TYPE_INT, false, true },
@@ -32,7 +32,7 @@ cmd_t cmds[] = {
 	{ (cmd_f)cmd_speed, 0, CMD_TYPE_INT, false, false },
 	{ (cmd_f)cmd_drive, 2, CMD_TYPE_INT, true, false },
 	{ (cmd_f)cmd_name, 1, CMD_TYPE_STR, false, true },
-	{ (cmd_f)cmd_image, 1, CMD_TYPE_STR, false, true },
+	{ (cmd_f)cmd_image, 1, CMD_TYPE_INT, false, true },
 };
 
 int cmdn = sizeof(cmds) / sizeof(cmd_t);
@@ -100,14 +100,17 @@ int cmd_name(struct robot *robot, char **args)
 	return 1;
 }
 
-int cmd_image(struct robot *robot, char **args)
+int cmd_image(struct robot *robot, int *args)
 {
-	if (strchr(args[0], '/'))
+	assert(!robot->data);
+	if (*args <= 0 || *args > MAX_IMAGE_BYTES)
 		return -1;
-	if (robot->img)
-		cairo_surface_destroy(robot->img);
-	robot->img = toolkit_load_image(args[0]);
-	return !!robot->img;
+	robot->data_len = *args;
+	robot->data_ptr = 0;
+	robot->data = malloc(*args);
+	if (!robot->data)
+		return -1;
+	return 1;
 }
 
 result_t execute_cmd(struct robot *robot, char *input, int phase)

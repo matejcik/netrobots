@@ -24,6 +24,5 @@ typedef enum event_t {
 cairo_t *init_toolkit(int *argc, char ***argv);
 void free_toolkit(cairo_t *cr);
 event_t process_toolkit(cairo_t **cr);
-cairo_surface_t *toolkit_load_image(char *path);
 
 #endif

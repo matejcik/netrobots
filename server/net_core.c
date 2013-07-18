@@ -177,6 +177,18 @@ int process_robots(int phase)
 				close_kill_robot(pfd, robot);
 				continue;
 			}
+			if (robot->data) {
+				/* read picture data */
+				if (robot->data_ptr + ret > robot->data_len) {
+					close_kill_robot(pfd, robot);
+					continue;
+				}
+				memcpy(robot->data + robot->data_ptr, buf, ret);
+				robot->data_ptr += ret;
+				if (robot->data_ptr == robot->data_len)
+					sockwrite(pfd->fd, OK, "%d", load_image(robot));
+				continue;
+			}
 			buf[ret] = '\0';
 
 			result = execute_cmd(robot, buf, phase);

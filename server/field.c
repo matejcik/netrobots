@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
 #include <assert.h>
 
 #include "toolkit.h"
@@ -346,6 +347,35 @@ void update_display(int finished)
 	draw(cr);
 	if (finished)
 		draw_results(cr);
+}
+
+static cairo_status_t read_data(void *closure, unsigned char *data, unsigned int length)
+{
+	struct robot *robot = closure;
+
+	if (robot->data_ptr + length > robot->data_len)
+		return CAIRO_STATUS_READ_ERROR;
+	memcpy(data, robot->data + robot->data_ptr, length);
+	robot->data_ptr += length;
+	return CAIRO_STATUS_SUCCESS;
+}
+
+int load_image(struct robot *robot)
+{
+	cairo_surface_t *result;
+
+	robot->data_ptr = 0;
+	result = cairo_image_surface_create_from_png_stream(read_data, robot);
+	if (cairo_surface_status(result) != CAIRO_STATUS_SUCCESS) {
+		cairo_surface_destroy(result);
+		result = NULL;
+	}
+	if (robot->img)
+		cairo_surface_destroy(robot->img);
+	robot->img = result;
+	free(robot->data);
+	robot->data = NULL;
+	return !!result;
 }
 
 void init_cairo(int *argc, char ***argv)

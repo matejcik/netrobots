@@ -8,6 +8,7 @@
 #define MAP_H
 
 #include "toolkit.h"
+#include "robotserver.h"
 
 /* Initialize the rendering of the map.  */
 void init_cairo(int *argc, char ***argv);
@@ -15,5 +16,7 @@ event_t process_cairo(void);
 
 /* Update the canvas */
 void update_display(int finished);
+
+int load_image(struct robot *robot);
 
 #endif

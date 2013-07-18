@@ -33,6 +33,8 @@ struct robot {
 	struct cannon cannon[2];
 	float color[3];
 	cairo_surface_t *img;
+	void *data;
+	int data_len, data_ptr;
 };
 
 extern struct robot **all_robots;
