@@ -103,6 +103,13 @@ void raise_timer(int sig)
 	timer = 1;
 }
 
+void close_kill_robot(struct pollfd *pfd, struct robot *robot)
+{
+	close(pfd->fd);
+	pfd->fd = -1;
+	kill_robot(robot);
+}
+
 int process_robots(int phase)
 {
 	int i, ret, rfd;
@@ -148,15 +155,12 @@ int process_robots(int phase)
 
 			if (pfd->revents & (POLLERR | POLLHUP)) {
 				/* error or disconnected robot -> kill */
-				close(pfd->fd);
-				pfd->fd = -1;
-				kill_robot(robot);
+				close_kill_robot(pfd, robot);
 				continue;
 			}
 			if (robot->damage >= 100) {
 				sockwrite(pfd->fd, DEAD, "Sorry!");
-				close(pfd->fd);
-				pfd->fd = -1;
+				close_kill_robot(pfd, robot);
 				continue;
 			}
 
@@ -164,17 +168,13 @@ int process_robots(int phase)
 				continue;
 
 			if (!(pfd->revents & POLLOUT)) {
-				close(pfd->fd);
-				pfd->fd = -1;
-				kill_robot(robot);
+				close_kill_robot(pfd, robot);
 				continue;
 			}
 
 			ret = read(pfd->fd, buf, STD_BUF);
 			if (ret <= 0) {
-				close(pfd->fd);
-				pfd->fd = -1;
-				kill_robot(robot);
+				close_kill_robot(pfd, robot);
 				continue;
 			}
 			buf[ret] = '\0';
@@ -183,9 +183,7 @@ int process_robots(int phase)
 			if (result.error) {
 				if (result.result < 0) {
 					sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
-					close(pfd->fd);
-					pfd->fd = -1;
-					kill_robot(robot);
+					close_kill_robot(pfd, robot);
 				} else
 					robot->waiting = 1;
 			}
