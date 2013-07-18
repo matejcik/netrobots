@@ -1,4 +1,3 @@
-#include "robots.h"
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -11,10 +10,13 @@
 #include <signal.h>
 #include <ctype.h>
 
+#include "netrobots.h"
 #include "net_utils.h"
 #include "net_command_list.h"
 
-#undef main
+#define STD_RESP_LEN		64
+#define DEFAULT_REMOTEHOST	"localhost"
+#define DEFAULT_PORT		"4300"
 
 static int serverfd;
 
@@ -121,7 +123,7 @@ void usage(char *prog, int retval)
 	exit(retval);
 }
 
-int main(int argc, char **argv)
+void init_custom(char *img_path, int argc, char *argv[])
 {
 	int retval;
 	char *remotehost = DEFAULT_REMOTEHOST;
@@ -157,11 +159,15 @@ int main(int argc, char **argv)
 	srandom(time(NULL) + getpid());
 	srand(time(NULL) + getpid());
 
-#ifndef MANUAL_INIT
 	set_default_name(argv[0]);
+	if (img_path)
+		image(img_path);
 	start();
-#endif
-	rmain ();
+}
+
+void init(int argc, char *argv[])
+{
+	init_custom(NULL, argc, argv);
 }
 
 void start(void)
@@ -212,7 +218,7 @@ int cycle2()
 	return get_resp_value(ret);
 }
 
-void cycle ()
+void cycle()
 {
 	(void)cycle2();
 }

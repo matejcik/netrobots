@@ -1,7 +1,9 @@
-#include "robots.h"
-main ()
+#include <netrobots.h>
+int
+main (int argc, char *argv[])
 {
   int direction;
+  init (argc, argv);
   direction = 90;
   while (1)
     {

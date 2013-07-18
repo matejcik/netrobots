@@ -2,7 +2,7 @@
 /* strategy: since a scan of the entire battlefield can be done in 90 */
 /* degrees from a corner, sniper can scan the field quickly. */
 
-#include "robots.h"
+#include <netrobots.h>
 #include <math.h>
 
 /* classical pythagorean distance formula */
@@ -79,8 +79,9 @@ new_corner ()
 
 /* main */
 int
-main ()
+main (int argc, char *argv[])
 {
+  init (argc, argv);
   /* initialize the corner info */
   while (1)
     {				/* loop is executed forever */

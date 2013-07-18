@@ -2,7 +2,7 @@
 /* rabbit runs around the field, randomly */
 /* and never fires;  use as a target */
 
-#include "robots.h"
+#include <netrobots.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -44,8 +44,9 @@ void go (int dest_x, int dest_y)
 
 
 int
-main ()
+main (int argc, char *argv[])
 {
+  init (argc, argv);
   while (1)
     {
       int x = rand () / (double) RAND_MAX * 1000;

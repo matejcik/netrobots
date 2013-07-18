@@ -2,7 +2,7 @@
 /* scan in a counter-clockwise direction (increasing degrees) */
 /* moves when hit */
 
-#include "robots.h"
+#include <netrobots.h>
 #include <stdlib.h>
 
 /* run moves around the center of the field */
@@ -50,11 +50,12 @@ run ()
 #define DAMAGE_THRESHOLD	1
 
 int
-main ()
+main (int argc, char *argv[])
 {
   int angle, range;
   int d;
   int i;
+  init (argc, argv);
   while (1)
     {
       run ();

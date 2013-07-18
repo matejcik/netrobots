@@ -2,7 +2,7 @@
 /* scan the battlefield like a rook, i.e., only 0,90,180,270 */
 /* move horizontally only, but looks horz and vertically */
 
-#include "robots.h"
+#include <netrobots.h>
 #include <stdio.h>
 int course;
 int boundary;
@@ -42,10 +42,11 @@ look (int deg)
 }
 
 int
-main ()
+main (int argc, char *argv[])
 {
   int y;
 
+  init (argc, argv);
   /* move to center of board */
   if (loc_y () < 500)
     {
