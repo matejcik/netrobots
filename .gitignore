@@ -1,4 +1,5 @@
 *.o
+*.pyc
 libnetrobots.so
 robotserver
 examples/counter
