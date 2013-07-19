@@ -20,16 +20,18 @@
 #include <sys/time.h>
 #include <cairo/cairo.h>
 
-#define RELOAD_RATIO	50
 #define SPEED_RATIO	0.04
 #define BREAK_DISTANCE	(0.7 / SPEED_RATIO)
+#define SHOT_SPEED	(400.0 * SPEED_RATIO)
+#define SHOT_BLAST	25
 
 #define MAX_ROBOTS	21
 #define MAX_NAME_LEN	14
 
 struct cannon {
-	int timeToReload;
-	int x, y;
+	int fired;
+	int dx, dy;
+	double x, y;
 };
 
 struct robot {

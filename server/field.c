@@ -42,63 +42,43 @@ double degtorad(int degrees)
 	return radiants;
 }
 
-double _get_distance(double x1, double y1, double x2, double y2)
+void shot_animation(cairo_t *cr, struct cannon *c)
 {
-	double x, y;
-	x = x2 - x1;
-	y = y2 - y1;
-	return sqrt(x*x + y*y);
-}
-
-void shot_animation(cairo_t *cr, double direction, struct cannon *can,
-		    double origin_x, double origin_y)
-{
-	double dist;
 	static cairo_pattern_t *pat = NULL;
-	int time = can->timeToReload - RELOAD_RATIO / 2;
-		/* reduce the reload time by half of it so it draws the
-		 * explosion and the flash for half the reload time */
 
-	if (time <= 0)
-		/* if the gun is loaded don't paint anything */
+	if (!c->fired)
 		return;
 
 	cairo_save(cr);
-	cairo_translate(cr, can->x, can->y);
+	cairo_translate(cr, c->x, c->y);
 
-	/* explosion */
-	cairo_arc(cr, 0, 0, 40, 0, 2 * M_PI);
-	if (!pat) {
-		pat = cairo_pattern_create_radial(0, 0, 10, 0, 0, 40);
-		cairo_pattern_add_color_stop_rgba(pat, 0, 1, 0, 0, time / (RELOAD_RATIO / 2.0));
-		cairo_pattern_add_color_stop_rgba(pat, 0.3, 1, 0.5, 0, time / (RELOAD_RATIO / 2.0));
-		cairo_pattern_add_color_stop_rgba(pat, 0.6, 1, 0.2, 0, time / (RELOAD_RATIO / 2.0));
+	if (c->fired == 1) {
+		cairo_arc(cr, 0, 0, 5, 0, 2 * M_PI);
+		cairo_set_source_rgba(cr, 0, 0, 0, 0.4);
+		cairo_fill_preserve(cr);
+		cairo_set_source_rgba(cr, 0, 0, 0, 0.8);
+		cairo_set_line_width(cr, 1);
+		cairo_stroke(cr);
+	} else {
+		/* explosion */
+		cairo_arc(cr, 0, 0, (double)c->fired * 40.0 / SHOT_BLAST, 0, 2 * M_PI);
+		if (!pat) {
+			pat = cairo_pattern_create_radial(0, 0, 10, 0, 0, 40);
+			cairo_pattern_add_color_stop_rgba(pat, 0, 1, 0, 0, 1);
+			cairo_pattern_add_color_stop_rgba(pat, 0.3, 1, 0.5, 0, 1);
+			cairo_pattern_add_color_stop_rgba(pat, 0.6, 1, 0.2, 0, 1);
+		}
+		cairo_set_source (cr, pat);
+		cairo_fill (cr);
 	}
-	cairo_set_source (cr, pat);
-	cairo_fill (cr);
 
-	cairo_restore(cr);
-
-	/* draw track from the robot to the target */
-	cairo_save(cr);
-	cairo_translate(cr, origin_x, origin_y);
-	cairo_rotate(cr, direction);
-	dist = _get_distance(origin_x, origin_y, can->x, can->y);
-	cairo_move_to(cr, dist, -5);
-	cairo_line_to(cr, 0, 0);
-	cairo_line_to(cr, dist, 5);
-	cairo_set_source_rgba(cr, 1, 0.5, 0, (double)time / RELOAD_RATIO);
-	cairo_fill_preserve(cr);
-	cairo_set_source_rgba(cr, 1, 0, 0, (double)time / RELOAD_RATIO);
-	cairo_set_line_width(cr, 1);
-	cairo_stroke(cr);
 	cairo_restore(cr);
 }
 
 /*
  * draws the cannon with the right orientation
  */
-void draw_cannon(cairo_t *cr, double direction, int reload)
+void draw_cannon(cairo_t *cr, double direction, int disabled)
 {
 	double x1 = -5, y1 = 51,
 	       x2 = -5, y2 = 19,
@@ -107,7 +87,7 @@ void draw_cannon(cairo_t *cr, double direction, int reload)
 
 	cairo_save(cr);
 	cairo_rotate(cr, direction);
-	cairo_set_source_rgba(cr, 0, 0, 0, (double)(RELOAD_RATIO - reload) / RELOAD_RATIO);
+	cairo_set_source_rgba(cr, 0, 0, 0, disabled ? 0.5 : 1);
 	cairo_move_to(cr, x1, y1);
 	cairo_line_to(cr, x2, y2);
 	cairo_line_to(cr, x3, y3);
@@ -143,7 +123,7 @@ void draw_radar(cairo_t *cr, double direction)
  * draws a robot with a given parameters
  */
 void _draw_robot(cairo_t *cr, cairo_surface_t *img, double x, double y, int degree,
-		 int cannon_degree, int radar_degree, float *color, int reload,
+		 int cannon_degree, int radar_degree, float *color, int fired,
 		 double size)
 {
 	double x1 = -70, y1 = -30,
@@ -185,7 +165,7 @@ void _draw_robot(cairo_t *cr, cairo_surface_t *img, double x, double y, int degr
 	}
 
 	cairo_restore(cr);	/* pop rotate */
-	draw_cannon(cr, degtorad(270 + cannon_degree), reload);
+	draw_cannon(cr, degtorad(270 + cannon_degree), fired);
 	draw_radar(cr, degtorad(270 + radar_degree));
 	cairo_restore(cr);	/* pop translate/scale */
 }
@@ -199,10 +179,8 @@ void draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 	_draw_robot(cr, myRobot->img, myRobot->x, myRobot->y, myRobot->degree,
 		    myRobot->cannon_degree, myRobot->radar_degree, myRobot->color,
 		    0, size);
-	shot_animation(cr, degtorad(myRobot->cannon_degree), &myRobot->cannon[0],
-		       myRobot->x, myRobot->y);
-	shot_animation(cr, degtorad(myRobot->cannon_degree), &myRobot->cannon[1],
-		       myRobot->x, myRobot->y);
+	shot_animation(cr, &myRobot->cannon[0]);
+	shot_animation(cr, &myRobot->cannon[1]);
 }
 
 /*
@@ -235,7 +213,7 @@ void draw_stats(cairo_t *cr, struct robot **all)
 
 	for (i = 0; i < max_robots; i++) {
 		_draw_robot(cr, all[i]->img, 15, 16 + i * space, 0, 0, 0, all[i]->color,
-			    MIN(all[i]->cannon[0].timeToReload, all[i]->cannon[1].timeToReload),
+			    MIN(all[i]->cannon[0].fired, all[i]->cannon[1].fired),
 			    0.15);
 
 		/* rectangle around life bar */

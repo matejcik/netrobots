@@ -44,8 +44,6 @@ void kill_robot(struct robot *r)
 	r->x = -1000;
 	r->y = -1000;
 	r->damage = 100;
-	r->cannon[0].timeToReload = 0;
-	r->cannon[1].timeToReload = 0;
 	get_time_delta(&r->life_length);
 	ranking[dead_robots++] = r;
 }
@@ -162,6 +160,14 @@ int get_distance(int x1, int y1, int x2, int y2)
 	return sqrt(x*x + y*y);
 }
 
+double get_distance_f(double x1, double y1, double x2, double y2)
+{
+	double x, y;
+	x = x2 - x1;
+	y = y2 - y1;
+	return sqrt(x*x + y*y);
+}
+
 int compute_angle(int x1, int y1, int x2, int y2)
 {
 	return standardize_degree(atan2(y2 - y1, x2 - x1) * 180 / M_PI);
@@ -176,6 +182,12 @@ int angle_in(int angle, int lower, int upper)
 		return 1;
 	angle += 720;
 	return (angle >= lower && angle <= upper);
+}
+
+int coord_in(int coord, double border1, double border2)
+{
+	return (coord > border1 && coord <= border2) ||
+	       (coord > border2 && coord <= border1);
 }
 
 int scan(struct robot *r, int degree, int resolution)
@@ -218,14 +230,13 @@ int scan(struct robot *r, int degree, int resolution)
 
 int cannon(struct robot *r, int degree, int range)
 {
-	int i, freeSlot;
-	int distance_from_center, x, y;
-	int damage;
+	int freeSlot;
+	int x, y;
 
 	/* If the cannon is not reloading, meaning it's ready the robottino
 	 * shoots otherwise break */
 	for (freeSlot = 0; freeSlot < 2; freeSlot++)
-		if (r->cannon[freeSlot].timeToReload == 0)
+		if (!r->cannon[freeSlot].fired)
 			break;
 
 	if (freeSlot == 2)
@@ -242,9 +253,24 @@ int cannon(struct robot *r, int degree, int range)
 	x = cos(degree * M_PI / 180) * range + r->x;
 	y = sin(degree * M_PI / 180) * range + r->y;
 
+	r->cannon[freeSlot].fired = 1;
+	r->cannon[freeSlot].dx = x;
+	r->cannon[freeSlot].dy = y;
+	r->cannon[freeSlot].x = r->x;
+	r->cannon[freeSlot].y = r->y;
+	return 1;
+}
+
+static void cannon_blast(struct robot *r, struct cannon *c)
+{
+	int i;
+	int distance_from_center;
+	int damage;
+
 	for (i = 0; i < max_robots; i++) {
 		if (all_robots[i]->damage < 100) {
-			distance_from_center = get_distance(all_robots[i]->x, all_robots[i]->y, x, y);
+			distance_from_center = get_distance(all_robots[i]->x, all_robots[i]->y,
+							    c->dx, c->dy);
 			damage = 0;
 			if (distance_from_center <= 5)
 				damage = 10;
@@ -262,11 +288,6 @@ int cannon(struct robot *r, int degree, int range)
 		if (all_robots[i]->damage >= 100)
 			kill_robot(all_robots[i]);
 	}
-
-	r->cannon[freeSlot].timeToReload = RELOAD_RATIO;
-	r->cannon[freeSlot].x = x;
-	r->cannon[freeSlot].y = y;
-	return 1;
 }
 
 void drive(struct robot *r, int degree, int speed)
@@ -339,11 +360,34 @@ static void cycle_robot(struct robot *r)
 		r->speed += (r->target_speed - r->speed) / r->break_distance;
 		r->break_distance--;
 	}
+}
 
-	/* Decreasing the time to reload the missiles */
+static void cycle_cannons(struct robot *r)
+{
+	int i;
+	struct cannon *c;
+	double dist, new_x, new_y;
+
 	for (i = 0; i < 2; i++) {
-		if (r->cannon[i].timeToReload != 0)
-			r->cannon[i].timeToReload--;
+		c = &r->cannon[i];
+		if (!c->fired)
+			continue;
+		if (c->fired > 1) {
+			if (++c->fired > SHOT_BLAST)
+				c->fired = 0;
+			continue;
+		}
+		dist = get_distance_f(c->x, c->y, c->dx, c->dy);
+		new_x = c->x + ((double)c->dx - c->x) / dist * SHOT_SPEED;
+		new_y = c->y + ((double)c->dy - c->y) / dist * SHOT_SPEED;
+		if (coord_in(c->dx, c->x, new_x) || coord_in(c->dy, c->y, new_y)) {
+			new_x = c->dx;
+			new_y = c->dy;
+			c->fired++;
+			cannon_blast(r, c);
+		}
+		c->x = new_x;
+		c->y = new_y;
 	}
 }
 
@@ -351,7 +395,9 @@ void cycle()
 {
 	int i;
 
-	for(i = 0; i < max_robots; i++)
+	for(i = 0; i < max_robots; i++) {
 		if (all_robots[i]->damage < 100)
 			cycle_robot(all_robots[i]);
+		cycle_cannons(all_robots[i]);
+	}
 }
