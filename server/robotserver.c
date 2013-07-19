@@ -255,7 +255,8 @@ int cannon(struct robot *r, int degree, int range)
 			if (damage && !game_end.tv_sec) {
 				damage = MIN(damage, 100 - all_robots[i]->damage);
 				all_robots[i]->damage += damage;
-				r->score += damage;
+				if (all_robots[i] != r)
+					r->score += damage;
 			}
 		}
 		if (all_robots[i]->damage >= 100)
