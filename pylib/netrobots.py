@@ -84,6 +84,8 @@ class Robot(object):
 		except socket.error as msg:
 			raise RobotError(str(msg))
 		try:
+			if not data:
+				raise RobotGameOver('Server terminated')
 			data = data.split(' ')
 			result = int(data[0])
 			data = data[1:]
