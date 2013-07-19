@@ -275,6 +275,7 @@ void draw_results(cairo_t *cr)
 	int yoffset, x, y, xwidth, font_size;
 	char text[32];
 	cairo_text_extents_t ext;
+	struct robot *r;
 
 	assert(dead_robots == max_robots);
 
@@ -286,6 +287,7 @@ void draw_results(cairo_t *cr)
 
 	yoffset = 120;
 	for (i = 0; i < 5 && i < max_robots; i++) {
+		r = ranking[max_robots - i - 1];
 		cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
 				       CAIRO_FONT_WEIGHT_BOLD);
 		cairo_set_source_rgb(cr, 0, 0.3, 0);
@@ -295,7 +297,7 @@ void draw_results(cairo_t *cr)
 			font_size = 30;
 		cairo_set_font_size(cr, font_size);
 		snprintf(text, sizeof(text), "%d.", i + 1);
-		cairo_text_extents(cr, ranking[i]->name, &ext);
+		cairo_text_extents(cr, r->name, &ext);
 		xwidth = ext.width;
 		cairo_text_extents(cr, text, &ext);
 		xwidth += ext.width + 3 * font_size;
@@ -303,11 +305,11 @@ void draw_results(cairo_t *cr)
 		y = yoffset + i * 60;
 		cairo_move_to(cr, x, y);
 		cairo_show_text(cr, text);
-		_draw_robot(cr, ranking[i]->img,
+		_draw_robot(cr, r->img,
 			    x + ext.width + font_size, y - font_size * 0.4,
-			    0, 0, 0, ranking[i]->color, 0, font_size / 150.0);
+			    0, 0, 0, r->color, 0, font_size / 150.0);
 		cairo_move_to(cr, x + 3 * font_size, y);
-		cairo_show_text(cr, ranking[i]->name);
+		cairo_show_text(cr, r->name);
 
 		cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_ITALIC,
 				       CAIRO_FONT_WEIGHT_NORMAL);
@@ -317,14 +319,14 @@ void draw_results(cairo_t *cr)
 			font_size = 15;
 		cairo_set_font_size(cr, font_size);
 
-		snprintf(text, sizeof(text), "time: %ld:%02ld", ranking[i]->life_length.tv_sec / 60,
-			 ranking[i]->life_length.tv_sec % 60);
+		snprintf(text, sizeof(text), "time: %ld:%02ld", r->life_length.tv_sec / 60,
+			 r->life_length.tv_sec % 60);
 		cairo_text_extents(cr, text, &ext);
 		cairo_move_to(cr, (WIN_HEIGHT - 40) / 2 - ext.width - 20,
 			      yoffset + font_size + 5 + i * 60);
 		cairo_show_text(cr, text);
 
-		snprintf(text, sizeof(text), "score: %d", ranking[i]->score);
+		snprintf(text, sizeof(text), "score: %d", r->score);
 		cairo_move_to(cr, (WIN_HEIGHT - 40) / 2 + 20,
 			      yoffset + font_size + 5 + i * 60);
 		cairo_show_text(cr, text);

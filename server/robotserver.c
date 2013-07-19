@@ -28,6 +28,10 @@ void get_time_delta(struct timeval *tv)
 	struct timeval src;
 
 	gettimeofday(&src, NULL);
+	if (!timerisset(&game_start)) {
+		timerclear(tv);
+		return;
+	}
 	timersub(&src, &game_start, tv);
 	if (tv->tv_sec < 0)
 		timerclear(tv);
@@ -43,7 +47,7 @@ void kill_robot(struct robot *r)
 	r->cannon[0].timeToReload = 0;
 	r->cannon[1].timeToReload = 0;
 	get_time_delta(&r->life_length);
-	ranking[max_robots - (++dead_robots)] = r;
+	ranking[dead_robots++] = r;
 }
 
 void complete_ranking(void)
@@ -69,18 +73,18 @@ void complete_ranking(void)
 		assert(selected >= 0);
 		r = all_robots[selected];
 		r->life_length = t;
-		ranking[max_robots - (++dead_robots)] = r;
+		ranking[dead_robots++] = r;
 	}
 
 	if (game_type == GAME_SCORE) {
 		for (i = 0; i < max_robots; i++) {
 			selected = -1;
-			max = -1;
+			max = 100000;
 			for (j = i; j < max_robots; j++) {
 				r = ranking[j];
-				if ((r->score > max) ||
+				if ((r->score < max) ||
 				    ((r->score == max) &&
-				     timercmp(&r->life_length, &ranking[selected]->life_length, >))) {
+				     timercmp(&r->life_length, &ranking[selected]->life_length, <))) {
 					max = r->score;
 					selected = j;
 				}
@@ -100,7 +104,7 @@ void complete_ranking(void)
 		}
 		fprintf(f, "****** %s", ctime(&game_start.tv_sec));
 		for (i = 0; i < max_robots; i++) {
-			r = ranking[i];
+			r = ranking[max_robots - i - 1];
 			fprintf(f, "%d.\t%s\t%d\t%ld.%ld\n", i + 1, r->name, r->score,
 				r->life_length.tv_sec, r->life_length.tv_usec);
 		}
