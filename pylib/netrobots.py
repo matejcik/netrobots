@@ -2,6 +2,7 @@ import sys
 import os.path
 import argparse
 import socket
+import re
 
 START = 0
 CYCLE = 1
@@ -73,9 +74,18 @@ class Robot(object):
 			raise RobotError(str(msg))
 	
 	def __set_default_name(self):
-		name = os.path.basename(sys.argv[0])
+		if hasattr(self, 'name'):
+			name = self.name
+		else:
+			name = self.__class__.__name__
+			if name == 'Robot':
+				name = ''
 		if not name:
-			name = 'PyRobot'
+			name = os.path.basename(sys.argv[0])
+			if not name:
+				name = 'PyRobot'
+		else:
+			name = re.sub('([A-Z]+)', r' \1', name).lstrip()
 		self.set_name(name)
 	
 	def __get_reply(self):
