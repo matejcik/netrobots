@@ -13,6 +13,7 @@ LOC_X	= 'x'
 LOC_Y	= 'y'
 DAMAGE	= 'l'
 SPEED	= 'v'
+ELAPSED	= 'e'
 NAME	= 'n'
 IMAGE	= 'i'
 
