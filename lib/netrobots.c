@@ -35,43 +35,77 @@
 #define DEFAULT_REMOTEHOST	"localhost"
 #define DEFAULT_PORT		"4300"
 
+/* server config */
+int game_type = -1;
+int shot_speed = -1;
+int max_cycles = -1;
+
 static int serverfd;
 
 void start(void);
 void set_name(char *name);
 int image(char *path);
 
-static int get_resp_value(int ret)
+static int get_resp(int *resp, int count)
 {
-	char resp[STD_RESP_LEN + 1];
-	char *argv[1];
-	int count, result = -1, cmd, argc;
+	char buf[STD_RESP_LEN + 1], *tmp;
+	char **argv;
+	int len, cmd, i;
 
-	count = read(serverfd, resp, STD_RESP_LEN);
+	len = read(serverfd, buf, STD_RESP_LEN);
 
-	if (count > 0) {
-		resp[count] = '\0';
-		argc = parse_command(resp, 1, &cmd, argv);
+	if (len > 0) {
+		buf[len] = '\0';
+		tmp = get_command(buf, &cmd);
 		switch (cmd) {
 		case DEAD:
-			printf_die(stdout, "Killed: %s\n", 1, argc ? argv[0] : "unknown reason");
+			printf_die(stdout, "Killed: %s\n", 1, *tmp ? tmp : "unknown reason");
 			break;
 		case OK:
 			break;
 		case ERROR:
-			printf_die(stderr, "Error: %s\n", 2, argc ? argv[0]: "unknown error");
+			printf_die(stderr, "Error: %s\n", 2, *tmp ? tmp : "unknown error");
 			break;
 		default:
 			printf_die(stderr, "Error: unexpected response from the server\n", 2);
 			break;
 		}
 
-		if (argc && str_isnumber(argv[0]))
-			result = atoi(argv[0]);
-	}
+		argv = malloc(count * sizeof(char *));
+		count = tokenize_args(tmp, count, argv);
+		for (i = 0; i < count; i++) {
+			if (str_isnumber(argv[i]))
+				resp[i] = atoi(argv[i]);
+			else
+				resp[i] = -1;
+		}
+		free(argv);
+	} else
+		count = 0;
+	return count;
+}
+
+static int get_resp_value(int ret)
+{
+	int value = -1;
+
+	get_resp(&value, 1);
 	if (ret == -1)
 		printf_die(stdout, "Server dead or you have been killed\n", 1);
-	return result;
+	return value;
+}
+
+static void receive_config(void)
+{
+	int config[4], count;
+
+	count = get_resp(config, 4);
+	if (count >= 1)
+		game_type = config[0];
+	if (count >= 2)
+		shot_speed = config[1];
+	if (count >= 3)
+		max_cycles = config[2];
 }
 
 static int client_init(char *remotehost, char *port)
@@ -100,6 +134,7 @@ static int client_init(char *remotehost, char *port)
 			if (connect(sock, runp->ai_addr, runp->ai_addrlen) == 0) {
 				ndprintf(stdout, "[NETWORK] Connected.\n");
 				serverfd = sock;
+				receive_config();
 				break;
 			}
 			close(sock);

@@ -31,4 +31,9 @@ int loc_x(void);
 int loc_y(void);
 int elapsed(void);
 
+/* server config */
+extern int game_type;
+extern int shot_speed;
+extern int max_cycles;
+
 #endif

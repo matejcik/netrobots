@@ -325,6 +325,9 @@ int server_process_connections(event_t event)
 		} else {
 			if (!create_client(fd))
 				sockwrite(fd, ERROR, "Internal error");
+			else
+				sockwrite(fd, OK, "%d %d %d", game_type,
+					  (int)(shot_speed / SPEED_RATIO), max_cycles);
 			if (autostart_robots > 0 && max_robots == autostart_robots)
 				res = 1;
 		}

@@ -42,7 +42,8 @@ class Robot(object):
 		y	current y coordinate
 		speed	current speed
 		damage	current damage
-		elapsed	elapsed cycles"""
+		elapsed	elapsed cycles
+		config	server config"""
 
 	def __init__(self, host=None, port=None, img_path=None, init=True):
 		"""__init__([host], [port], [img_path])
@@ -74,6 +75,10 @@ class Robot(object):
 			self.sk = socket.create_connection((self.host, self.port))
 		except socket.error as msg:
 			raise RobotError(str(msg))
+		config = self.__get_reply()
+		self.config = {}
+		for (k, v) in zip(('game_type', 'shot_speed', 'max_cycles'), config):
+			self.config[k] = v
 	
 	def __set_default_name(self):
 		if hasattr(self, 'name'):

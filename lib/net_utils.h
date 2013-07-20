@@ -30,7 +30,6 @@
 
 extern int debug;
 
-int parse_command(char *str, int argc, int *command, char *argv[]);
 char *get_command(char *str, int *command);
 int tokenize_args(char *str, int argc, char *argv[]);
 void ndprintf(FILE *fd, char *fmt, ...);

@@ -63,13 +63,6 @@ int tokenize_args(char *str, int argc, char *argv[])
 	return cnt;
 }
 
-/* Parses the command in one go. Returns number of arguments. */
-int parse_command(char *str, int argc, int *command, char *argv[])
-{
-	str = get_command(str, command);
-	return tokenize_args(str, argc, argv);
-}
-
 void ndprintf(FILE *fd, char *fmt, ...)
 {
 	va_list vp;
