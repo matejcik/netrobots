@@ -24,6 +24,7 @@
 #define BREAK_DISTANCE	(0.7 / SPEED_RATIO)
 #define DEF_SHOT_SPEED	(400.0 * SPEED_RATIO)
 #define SHOT_BLAST	25
+#define SHOT_RELOAD	25	/* only in laser game */
 
 #define MAX_ROBOTS	21
 #define MAX_NAME_LEN	14
@@ -64,6 +65,7 @@ extern struct timeval game_start;
 extern struct timeval game_end;
 extern int save_results;
 extern double shot_speed;
+extern int shot_reload;
 
 typedef enum game_type_t {
 	GAME_SCORE,
@@ -84,5 +86,9 @@ int speed(struct robot *r);
 int damage(struct robot *r);
 void kill_robot(struct robot *r);
 void complete_ranking(void);
+
+/* Helper functions */
+
+double get_distance_f(double x1, double y1, double x2, double y2);
 
 #endif

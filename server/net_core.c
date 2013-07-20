@@ -45,6 +45,8 @@ extern int debug;
 
 int save_results = 0;
 double shot_speed = DEF_SHOT_SPEED;
+int shot_reload = 0;
+
 int max_robots = 0;
 int dead_robots;
 
@@ -358,7 +360,7 @@ void usage(char *prog, int retval)
 	       "\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 	       "\t-P <port>\tSpecifies port (Default: 4300)\n"
 	       "\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
-	       "\t-m <speed>\tMissiles speed (Default: 400)\n"
+	       "\t-m <speed>\tMissiles speed, 0 for laser game (Default: 400)\n"
 	       "\t-t\tTime based game (Default: score based game)\n"
 	       "\t-s\tSave results to ./results.txt\n"
 	       "\t-d\tEnables debug mode\n", prog);
@@ -367,7 +369,7 @@ void usage(char *prog, int retval)
 
 int server_init(int argc, char *argv[])
 {
-	int retval, tmp;
+	int retval;
 
 	char *port = STD_PORT;
 	char *hostname = STD_HOSTNAME;
@@ -390,9 +392,9 @@ int server_init(int argc, char *argv[])
 			autostart_robots = atoi(optarg);
 			break;
 		case 'm':
-			tmp = atoi(optarg);
-			if (tmp)
-				shot_speed = (double)tmp * SPEED_RATIO;
+			shot_speed = atoi(optarg) * SPEED_RATIO;
+			if (shot_speed == 0)
+				shot_reload = SHOT_RELOAD;
 			break;
 		case 't':
 			game_type = GAME_TIME;

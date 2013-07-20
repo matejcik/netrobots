@@ -42,17 +42,17 @@ double degtorad(int degrees)
 	return radiants;
 }
 
-void shot_animation(cairo_t *cr, struct cannon *c)
+void shot_animation(cairo_t *cr, struct robot *r, struct cannon *c)
 {
 	static cairo_pattern_t *pat = NULL;
 
-	if (!c->fired)
+	if (!c->fired || c->fired > SHOT_BLAST)
 		return;
 
 	cairo_save(cr);
-	cairo_translate(cr, c->x, c->y);
 
 	if (c->fired == 1) {
+		cairo_translate(cr, c->x, c->y);
 		cairo_arc(cr, 0, 0, 5, 0, 2 * M_PI);
 		cairo_set_source_rgba(cr, 0, 0, 0, 0.4);
 		cairo_fill_preserve(cr);
@@ -61,6 +61,7 @@ void shot_animation(cairo_t *cr, struct cannon *c)
 		cairo_stroke(cr);
 	} else {
 		/* explosion */
+		cairo_translate(cr, c->dx, c->dy);
 		cairo_arc(cr, 0, 0, (double)c->fired * 40.0 / SHOT_BLAST, 0, 2 * M_PI);
 		if (!pat) {
 			pat = cairo_pattern_create_radial(0, 0, 10, 0, 0, 40);
@@ -73,6 +74,25 @@ void shot_animation(cairo_t *cr, struct cannon *c)
 	}
 
 	cairo_restore(cr);
+
+	if (shot_speed == 0) {
+		/* draw track from the robot to the target */
+		double dist;
+
+		cairo_save(cr);
+		cairo_translate(cr, r->x, r->y);
+		cairo_rotate(cr, atan2(c->dy - r->y, c->dx - r->x));
+		dist = get_distance_f(r->x, r->y, c->dx, c->dy);
+		cairo_move_to(cr, dist, -5);
+		cairo_line_to(cr, 0, 0);
+		cairo_line_to(cr, dist, 5);
+		cairo_set_source_rgba(cr, 1, 0.5, 0, (double)(SHOT_BLAST - c->fired) / SHOT_BLAST / 2);
+		cairo_fill_preserve(cr);
+		cairo_set_source_rgba(cr, 1, 0, 0, (double)(SHOT_BLAST - c->fired) / SHOT_BLAST / 2);
+		cairo_set_line_width(cr, 1);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+	}
 }
 
 /*
@@ -179,8 +199,8 @@ void draw_robot(cairo_t *cr, struct robot *myRobot, double size)
 	_draw_robot(cr, myRobot->img, myRobot->x, myRobot->y, myRobot->degree,
 		    myRobot->cannon_degree, myRobot->radar_degree, myRobot->color,
 		    0, size);
-	shot_animation(cr, &myRobot->cannon[0]);
-	shot_animation(cr, &myRobot->cannon[1]);
+	shot_animation(cr, myRobot, &myRobot->cannon[0]);
+	shot_animation(cr, myRobot, &myRobot->cannon[1]);
 }
 
 /*

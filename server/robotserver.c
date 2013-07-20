@@ -228,6 +228,35 @@ int scan(struct robot *r, int degree, int resolution)
 	return min_distance;
 }
 
+static void cannon_blast(struct robot *r, struct cannon *c)
+{
+	int i;
+	int distance_from_center;
+	int damage;
+
+	for (i = 0; i < max_robots; i++) {
+		if (all_robots[i]->damage < 100) {
+			distance_from_center = get_distance(all_robots[i]->x, all_robots[i]->y,
+							    c->dx, c->dy);
+			damage = 0;
+			if (distance_from_center <= 5)
+				damage = 10;
+			else if (distance_from_center <= 20)
+				damage = 5;
+			else if (distance_from_center <= 40)
+				damage = 3;
+			if (damage && !game_end.tv_sec) {
+				damage = MIN(damage, 100 - all_robots[i]->damage);
+				all_robots[i]->damage += damage;
+				if (all_robots[i] != r)
+					r->score += damage;
+			}
+		}
+		if (all_robots[i]->damage >= 100)
+			kill_robot(all_robots[i]);
+	}
+}
+
 int cannon(struct robot *r, int degree, int range)
 {
 	int freeSlot;
@@ -258,36 +287,14 @@ int cannon(struct robot *r, int degree, int range)
 	r->cannon[freeSlot].dy = y;
 	r->cannon[freeSlot].x = r->x;
 	r->cannon[freeSlot].y = r->y;
-	return 1;
-}
 
-static void cannon_blast(struct robot *r, struct cannon *c)
-{
-	int i;
-	int distance_from_center;
-	int damage;
-
-	for (i = 0; i < max_robots; i++) {
-		if (all_robots[i]->damage < 100) {
-			distance_from_center = get_distance(all_robots[i]->x, all_robots[i]->y,
-							    c->dx, c->dy);
-			damage = 0;
-			if (distance_from_center <= 5)
-				damage = 10;
-			else if (distance_from_center <= 20)
-				damage = 5;
-			else if (distance_from_center <= 40)
-				damage = 3;
-			if (damage && !game_end.tv_sec) {
-				damage = MIN(damage, 100 - all_robots[i]->damage);
-				all_robots[i]->damage += damage;
-				if (all_robots[i] != r)
-					r->score += damage;
-			}
-		}
-		if (all_robots[i]->damage >= 100)
-			kill_robot(all_robots[i]);
+	if (shot_speed == 0) {
+		/* laser game */
+		r->cannon[freeSlot].fired++;
+		cannon_blast(r, &r->cannon[freeSlot]);
 	}
+
+	return 1;
 }
 
 void drive(struct robot *r, int degree, int speed)
@@ -373,7 +380,7 @@ static void cycle_cannons(struct robot *r)
 		if (!c->fired)
 			continue;
 		if (c->fired > 1) {
-			if (++c->fired > SHOT_BLAST)
+			if (++c->fired > SHOT_BLAST + shot_reload)
 				c->fired = 0;
 			continue;
 		}
