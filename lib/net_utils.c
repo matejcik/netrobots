@@ -1,6 +1,7 @@
 /*
  * libnetrobots, client library for netrobots
  * Copyright (C) 2008 Paolo Bonzini and others
+ * Copyright (C) 2013 Jiri Benc
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,67 +24,50 @@
 
 int debug = 0;
 
-int str_to_argv(char *str, char ***argv)
+/* Returns pointer to the rest of the string (i.e., start of the arguments). */
+char *get_command(char *str, int *command)
 {
-	int argc = 0, alloc = STD_ALLOC;
-	char **targv;
-
-	*argv = NULL;
-
+	*command = -1;
 	if (!*str)
-		return argc;
-	targv = malloc((1 + alloc) * sizeof(char *));
-	if (!targv)
-		return -1;
-	for (;;) {
-		while (*str && isspace(*str))
-			*str++ = '\0';
-		if (!*str)
-			break;
-
-		if (argc >= MAX_ARGC)
-			break;
-
-		if (argc >= alloc) {
-			alloc *= 2;
-			if (!(targv = (char **)realloc(targv, (1 + alloc) * sizeof(char *))))
-				return argc;
-		}
-		targv[argc++] = str;
-		while (*str && !isspace(*str))
-			str++;
-		if (!*str)
-			break;
-	}
-	targv[argc] = NULL;
-	*argv = targv;
-
-	return argc;
+		return str;
+	*command = *str++;
+	while (isspace(*str))
+		str++;
+	return str;
 }
 
-char *argv_to_str(char **argv)
+/* Expects argv to be allocated to hold argc pointers. Returns number of
+ * found arguments. Note that this function rewrites the source string. */
+int tokenize_args(char *str, int argc, char *argv[])
 {
-	char *buf, *token;
-	int alloc = STD_BUF, len = 0, slen, i;
+	int cnt = 0;
+	char *ptr = str;
 
-	buf = malloc(alloc * sizeof(char));
-	if (!buf)
-		return buf;
-	for (i = 0; argv[i]; i++) {
-		token = argv[i];
-		slen = strlen(token);
-		if (slen >= alloc + len + 1) {
-			alloc = MAX(2 * len, len + 2 * slen + 1);
-			if (!(buf = (char *)realloc(buf, alloc * sizeof(char))))
-				return buf;
+	if (!argc)
+		return 0;
+	/* strtok is not thread safe, strtok_r is POSIX only, we have to
+	 * tokenize ourselves */
+	while (*ptr && cnt < argc - 1) {
+		if (isspace(*ptr)) {
+			*ptr = '\0';
+			argv[cnt++] = str;
+			while (isspace(*++ptr))
+				;
+			str = ptr;
+			continue;
 		}
-		memcpy(buf + len, token, slen);
-		len += slen;
-		buf[len++] = ' ';
+		ptr++;
 	}
-	buf[len] = '\0';
+	if (*str)
+		argv[cnt++] = str;
+	return cnt;
+}
 
-	return buf;
+/* Parses the command in one go. Returns number of arguments. */
+int parse_command(char *str, int argc, int *command, char *argv[])
+{
+	str = get_command(str, command);
+	return tokenize_args(str, argc, argv);
 }
 
 void ndprintf(FILE *fd, char *fmt, ...)
@@ -119,21 +103,21 @@ void printf_die(FILE *fd, char *fmt, int err, ...)
 	exit(err);
 }
 
-int sockwrite(int fd, int status, char *fmt, ...)
+int sockwrite(int fd, char command, char *fmt, ...)
 {
-	char *str, *tmp;
-	int ret, len;
+	char *str;
+	int ret;
 	va_list vp;
 
 	str = malloc(STD_BUF);
 	if (!str)
 		return -1;
-	len = sprintf(str, "%d", status);
+	str[0] = command;
+	str[1] = '\0';
 	if (fmt) {
-		tmp = str + len;
-		*tmp++ = ' ';
+		str[1] = ' ';
 		va_start(vp, fmt);
-		vsnprintf(tmp, STD_BUF - len - 1, fmt, vp);
+		vsnprintf(str + 2, STD_BUF - 2, fmt, vp);
 		va_end(vp);
 	}
 	ret = write(fd, str, strlen(str));

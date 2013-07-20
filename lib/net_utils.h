@@ -30,13 +30,13 @@
 
 extern int debug;
 
-/* to pass the ***argv pass &argv where argv is an array of strings */
-int str_to_argv(char *str, char ***argv);
-char *argv_to_str(char **argv);
+int parse_command(char *str, int argc, int *command, char *argv[]);
+char *get_command(char *str, int *command);
+int tokenize_args(char *str, int argc, char *argv[]);
 void ndprintf(FILE *fd, char *fmt, ...);
 void ndprintf_die(FILE *fd, char *fmt, ...);
 void printf_die(FILE *fd, char *fmt, int err, ...);
-int sockwrite(int fd, int status, char *fmt, ...);
+int sockwrite(int fd, char command, char *fmt, ...);
 int str_isnumber(char *str);
 
 #endif

@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <assert.h>
 
 #include "net_utils.h"
 #include "net_defines.h"
@@ -62,6 +63,14 @@ struct timeval game_start;
 struct timeval game_end;
 
 static volatile int timer;
+
+static char *err_desc[__ERR_MAX] = {
+	"Unspecified error",
+	"Unparsable command",
+	"Unknown command",
+	"Wrong argument type or count",
+	"Command not allowed",
+};
 
 float get_color_component(unsigned n, unsigned shade)
 {
@@ -178,7 +187,7 @@ int process_robots(int phase)
 				continue;
 			}
 			if (robot->damage >= 100) {
-				sockwrite(pfd->fd, DEAD, "Sorry!");
+				sockwrite(pfd->fd, DEAD, "You're dead");
 				close_kill_robot(pfd, robot);
 				continue;
 			}
@@ -211,18 +220,31 @@ int process_robots(int phase)
 			buf[ret] = '\0';
 
 			result = execute_cmd(robot, buf, phase);
-			if (result.error) {
-				if (result.result < 0) {
-					sockwrite(pfd->fd, ERROR, "Violation of the protocol!\n");
+			if (result.flags & RES_FLAG_ERROR) {
+				assert(result.result >= 0 && result.result < __ERR_MAX);
+				sockwrite(pfd->fd, ERROR, "%s", err_desc[result.result]);
+				close_kill_robot(pfd, robot);
+				continue;
+			}
+			if (result.flags & RES_FLAG_BLOCK) {
+				robot->waiting = 1;
+				continue;
+			}
+
+			if (result.flags & RES_FLAG_CYCLE)
+				pfd->events = 0;
+			if (result.flags & RES_FLAG_DATA) {
+				assert(!robot->data);
+				robot->data_len = result.result;
+				robot->data_ptr = 0;
+				robot->data = malloc(robot->data_len);
+				if (!robot->data) {
+					sockwrite(pfd->fd, ERROR, "Internal error");
 					close_kill_robot(pfd, robot);
-				} else
-					robot->waiting = 1;
+					continue;
+				}
 			}
-			else {
-				if (result.cycle)
-					pfd->events = 0;
-				sockwrite(pfd->fd, OK, "%d", result.result);
-			}
+			sockwrite(pfd->fd, OK, "%d", result.result);
 		}
 	} while ((to_talk || phase != 1) && !timer);
 	return 0;
@@ -302,7 +324,7 @@ int server_process_connections(event_t event)
 			close(fd);
 		} else {
 			if (!create_client(fd))
-				sockwrite(fd, ERROR, "Couldn't duplicate the FD\n");
+				sockwrite(fd, ERROR, "Internal error");
 			if (autostart_robots > 0 && max_robots == autostart_robots)
 				res = 1;
 		}

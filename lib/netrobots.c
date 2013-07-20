@@ -41,46 +41,36 @@ void start(void);
 void set_name(char *name);
 int image(char *path);
 
-static int eval_response(int resp)
-{
-	switch (resp) {
-	case DEAD:
-		printf_die(stdout, "You are dead!\n", 1);
-		break;
-	case OK:
-		break;
-	case ERROR:
-	default:
-		printf_die(stderr, "Error detected... exiting!\n", 2);
-		break;
-	}
-	return resp;
-}
-
 static int get_resp_value(int ret)
 {
-	char resp[STD_RESP_LEN + 1], **argv;
-	int count, result = -1, argc;
+	char resp[STD_RESP_LEN + 1];
+	char *argv[1];
+	int count, result = -1, cmd, argc;
 
 	count = read(serverfd, resp, STD_RESP_LEN);
 
 	if (count > 0) {
 		resp[count] = '\0';
-		argc = str_to_argv(resp, &argv);
-		if (argc == -1)
-			printf_die(stderr, "[ERROR] Cannot allocate buffer... exiting!\n",
-				   EXIT_FAILURE);
-		if (argc >= 1 && str_isnumber(argv[0])) {
-			eval_response(atoi(argv[0]));
-			if (argc >= 2 && str_isnumber(argv[1]))
-				result = atoi(argv[1]);
-			else
-				result = 0;
+		argc = parse_command(resp, 1, &cmd, argv);
+		switch (cmd) {
+		case DEAD:
+			printf_die(stdout, "Killed: %s\n", 1, argc ? argv[0] : "unknown reason");
+			break;
+		case OK:
+			break;
+		case ERROR:
+			printf_die(stderr, "Error: %s\n", 2, argc ? argv[0]: "unknown error");
+			break;
+		default:
+			printf_die(stderr, "Error: unexpected response from the server\n", 2);
+			break;
 		}
-		free(argv);
+
+		if (argc && str_isnumber(argv[0]))
+			result = atoi(argv[0]);
 	}
 	if (ret == -1)
-		printf_die(stdout, "Server probably dead or you have been killed!\n", 1);
+		printf_die(stdout, "Server dead or you have been killed\n", 1);
 	return result;
 }
 
@@ -268,17 +258,9 @@ int loc_y()
 
 void set_name(char *name)
 {
-	int ret, i;
-	char sanitized[15];
+	int ret;
 
-	for (i = 0; i < 14 && name[i]; i++) {
-		if (isspace(name[i]))
-			sanitized[i] = '_';
-		else
-			sanitized[i] = name[i];
-	}
-	sanitized[i] = 0;
-	ret = sockwrite(serverfd, NAME, "%s", sanitized);
+	ret = sockwrite(serverfd, NAME, "%s", name);
 	get_resp_value(ret);
 }
 

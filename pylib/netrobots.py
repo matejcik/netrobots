@@ -4,21 +4,21 @@ import argparse
 import socket
 import re
 
-START = 0
-CYCLE = 1
-CANNON = 2
-SCAN = 3
-LOC_X = 4
-LOC_Y = 5
-DAMAGE = 6
-SPEED = 7
-DRIVE = 8
-NAME = 9
-IMAGE = 10
+START	= 'g'
+CYCLE	= 'c'
+CANNON	= 'f'
+SCAN	= 's'
+DRIVE	= 'd'
+LOC_X	= 'x'
+LOC_Y	= 'y'
+DAMAGE	= 'l'
+SPEED	= 'v'
+NAME	= 'n'
+IMAGE	= 'i'
 
-ERROR = 0
-OK = 1
-DEAD = 2
+ERROR	= '!'
+OK	= 'k'
+DEAD	= 'd'
 
 STD_RESP_LEN = 64
 
@@ -93,16 +93,16 @@ class Robot(object):
 			data = self.sk.recv(STD_RESP_LEN)
 		except socket.error as msg:
 			raise RobotError(str(msg))
+		if not data:
+			raise RobotGameOver('Server terminated')
+		data = data.split(' ')
+		result = data[0]
+		data = data[1:]
+		if result == DEAD:
+			raise RobotGameOver('You are dead: %s' % ' '.join(data).strip())
+		if result != OK:
+			raise RobotError('Server returned error: %s' % ' '.join(data).strip())
 		try:
-			if not data:
-				raise RobotGameOver('Server terminated')
-			data = data.split(' ')
-			result = int(data[0])
-			data = data[1:]
-			if result == DEAD:
-				raise RobotGameOver('You are dead: %s' % ' '.join(data).strip())
-			if result != OK:
-				raise RobotError('Server returned error: %s' % ' '.join(data).strip())
 			data = [int(d) for d in data]
 		except ValueError:
 			raise RobotError('Invalid response received')
@@ -115,7 +115,7 @@ class Robot(object):
 		Sends a custom command to the server. Use only when you know
 		what you are doing."""
 		
-		data = "%d %s" % (command, ' '.join([str(a) for a in args]))
+		data = "%s %s" % (command, ' '.join([str(a) for a in args]))
 		try:
 			self.sk.send(data)
 		except socket.error as msg:
@@ -170,7 +170,7 @@ class Robot(object):
 		Sets name. Note that you don't have to set name, it is done
 		automatically for you."""
 
-		self.custom_command(NAME, name.replace(' ', '_'))
+		self.custom_command(NAME, name)
 	
 	def image(self, path):
 		"""image(path)

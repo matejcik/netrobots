@@ -37,28 +37,27 @@ int cmd_drive(struct robot *robot, int *args);
 int cmd_name(struct robot *robot, char **args);
 int cmd_image(struct robot *robot, int *args);
 
+#define MAX_ARGS	2
+
 cmd_t cmds[] = {
-	{ (cmd_f)cmd_start, 0, CMD_TYPE_INT, false, true },
-	{ (cmd_f)cmd_cycle, 0, CMD_TYPE_INT, true, true },
-	{ (cmd_f)cmd_cannon, 2, CMD_TYPE_INT, true, false },
-	{ (cmd_f)cmd_scan, 2, CMD_TYPE_INT, true, false },
-	{ (cmd_f)cmd_loc_x, 0, CMD_TYPE_INT, false, false },
-	{ (cmd_f)cmd_loc_y, 0, CMD_TYPE_INT, false, false },
-	{ (cmd_f)cmd_damage, 0, CMD_TYPE_INT, false, false },
-	{ (cmd_f)cmd_speed, 0, CMD_TYPE_INT, false, false },
-	{ (cmd_f)cmd_drive, 2, CMD_TYPE_INT, true, false },
-	{ (cmd_f)cmd_name, 1, CMD_TYPE_STR, false, true },
-	{ (cmd_f)cmd_image, 1, CMD_TYPE_INT, false, true },
+	{ START,  CMD_TYPE_NONE, 0, (cmd_f)cmd_start,  CMD_FLAG_PRESTART },
+	{ CYCLE,  CMD_TYPE_NONE, 0, (cmd_f)cmd_cycle,  CMD_FLAG_CYCLE | CMD_FLAG_PRESTART },
+	{ CANNON, CMD_TYPE_INT,  2, (cmd_f)cmd_cannon, CMD_FLAG_CYCLE },
+	{ SCAN,   CMD_TYPE_INT,  2, (cmd_f)cmd_scan,   CMD_FLAG_CYCLE },
+	{ DRIVE,  CMD_TYPE_INT,  2, (cmd_f)cmd_drive,  CMD_FLAG_CYCLE },
+	{ LOC_X,  CMD_TYPE_NONE, 0, (cmd_f)cmd_loc_x,  0 },
+	{ LOC_Y,  CMD_TYPE_NONE, 0, (cmd_f)cmd_loc_y,  0 },
+	{ DAMAGE, CMD_TYPE_NONE, 0, (cmd_f)cmd_damage, 0 },
+	{ SPEED,  CMD_TYPE_NONE, 0, (cmd_f)cmd_speed,  0 },
+	{ NAME,   CMD_TYPE_STR,  1, (cmd_f)cmd_name,   CMD_FLAG_PRESTART },
+	{ IMAGE,  CMD_TYPE_INT,  1, (cmd_f)cmd_image,  CMD_FLAG_PRESTART | CMD_FLAG_DATA },
 };
 
 int cmdn = sizeof(cmds) / sizeof(cmd_t);
 
-result_t error_res = { -1, true, false };
-result_t block_res = { 0, true, false };
-
 int cmd_start(struct robot *robot, int *args)
 {
-	return (timerisset(&game_start) ? 1 : -2);
+	return (timerisset(&game_start) ? 1 : -RES_FLAG_BLOCK);
 }
 
 int cmd_cycle(struct robot *robot, int *args)
@@ -104,12 +103,9 @@ int cmd_drive(struct robot *robot, int *args)
 
 int cmd_name(struct robot *robot, char **args)
 {
-	char *name, *p;
+	char *name;
 
 	name = strndup(args[0], MAX_NAME_LEN);
-	for (p = name; *p; p++)
-		if (*p == '_')
-			*p = ' ';
 	if (robot->name)
 		free(robot->name);
 	robot->name = name;
@@ -118,78 +114,78 @@ int cmd_name(struct robot *robot, char **args)
 
 int cmd_image(struct robot *robot, int *args)
 {
-	assert(!robot->data);
 	if (*args <= 0 || *args > MAX_IMAGE_BYTES)
 		return -1;
-	robot->data_len = *args;
-	robot->data_ptr = 0;
-	robot->data = malloc(*args);
-	if (!robot->data)
-		return -1;
-	return 1;
+	return *args;
 }
 
 result_t execute_cmd(struct robot *robot, char *input, int phase)
 {
-	char **argv;
-	int argc, ret, i;
-	void *args = NULL;
-	cmd_t cmd;
-	result_t res = error_res;
+	int i;
+	int cmd_id;
+	cmd_t *cmd = NULL;
+	char *argv[MAX_ARGS];
+	int args_int[MAX_ARGS];
+	void *args_cmd;
+	result_t res;
 
-	argc = str_to_argv(input, &argv);
-	if (argc == -1)
-		return error_res;
-	if (!argc || !str_isnumber(argv[0]))
-		goto out;
+	res.flags = RES_FLAG_ERROR;
 
-	i = atoi(argv[0]);
-	if (i < 0 || i >= cmdn)
-		goto out;
-	cmd = cmds[i];
-
-	if (cmd.args != argc - 1)
-		goto out;
-
-	if (phase == 0 && !cmd.prestart)
-		goto out;
-
-	switch (cmd.type) {
-	case CMD_TYPE_INT:
-		if (!(args = malloc(cmd.args * sizeof(int))))
-			goto out;
-
-		for (i = 1; i < argc; i++) {
-			if (!str_isnumber(argv[i]))
-				goto out;
-			((int *)args)[i - 1] = atoi(argv[i]);
+	input = get_command(input, &cmd_id);
+	if (cmd_id < 0) {
+		res.result = ERR_PARSE;
+		return res;
+	}
+	for (i = 0; i < cmdn; i++)
+		if (cmds[i].cmd == cmd_id) {
+			cmd = &cmds[i];
+			break;
 		}
+	if (!cmd) {
+		res.result = ERR_UNKNOWN;
+		return res;
+	}
+
+	assert(cmd->args <= MAX_ARGS);
+	if (tokenize_args(input, cmd->args, argv) != cmd->args) {
+		res.result = ERR_ARGS;
+		return res;
+	}
+
+	if (phase == 0 && !(cmd->flags & CMD_FLAG_PRESTART)) {
+		res.result = ERR_DENIED;
+		return res;
+	}
+
+	switch (cmd->type) {
+	case CMD_TYPE_INT:
+		for (i = 0; i < cmd->args; i++) {
+			if (!str_isnumber(argv[i])) {
+				res.result = ERR_ARGS;
+				return res;
+			}
+			args_int[i] = atoi(argv[i]);
+		}
+		args_cmd = args_int;
 		break;
 	case CMD_TYPE_STR:
-		if (!(args = malloc(cmd.args * sizeof(char *))))
-			goto out;
-		for (i = 1; i < argc; i++)
-			((char **)args)[i - 1] = argv[i];
+		args_cmd = argv;
+		break;
+	case CMD_TYPE_NONE:
+	default:
+		args_cmd = NULL;
 		break;
 	}
 
-	ret = cmd.func(robot, args);
-	ndprintf(stdout, "[COMMAND] %s -> %d recived - %g %g %d\n",
-		 argv[0], ret, robot->x, robot->y, robot->damage);
-	if (ret == -1)
-		goto out;
-	if (ret == -2) {
-		/* special case: block the caller */
-		res = block_res;
-		goto out;
+	res.flags = 0;
+	res.result = cmd->func(robot, args_cmd);
+	if (res.result < 0) {
+		res.flags = -res.result;
+		res.result = 0;
 	}
-
-	res.result = ret;
-	res.cycle = cmd.cycle;
-	res.error = false;
-
-out:
-	free(args);
-	free(argv);
+	if (cmd->flags & CMD_FLAG_CYCLE)
+		res.flags |= RES_FLAG_CYCLE;
+	if (cmd->flags & CMD_FLAG_DATA)
+		res.flags |= RES_FLAG_DATA;
 	return res;
 }

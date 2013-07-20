@@ -24,24 +24,42 @@
 #include "net_command_list.h"
 
 typedef enum cmd_type_t {
+	CMD_TYPE_NONE,
 	CMD_TYPE_INT,
 	CMD_TYPE_STR,
 } cmd_type_t;
 
+#define CMD_FLAG_CYCLE		(1 << 0)
+#define CMD_FLAG_PRESTART	(1 << 1)
+#define CMD_FLAG_DATA		(1 << 2)
+
 typedef int (*cmd_f)(struct robot *robot, void *args);
 
 typedef struct cmd_t {
-	cmd_f func;
-	int args;
+	char cmd;
 	cmd_type_t type;
-	bool cycle;
-	bool prestart;
+	int args;
+	cmd_f func;
+	unsigned int flags;
 } cmd_t;
+
+#define RES_FLAG_ERROR		(1 << 0)
+#define RES_FLAG_CYCLE		(1 << 1)
+#define RES_FLAG_DATA		(1 << 2)
+#define RES_FLAG_BLOCK		(1 << 3)
+
+typedef enum result_error_t {
+	ERR_ERR,	/* unspecified error */
+	ERR_PARSE,	/* unparsable command */
+	ERR_UNKNOWN,	/* unknown command */
+	ERR_ARGS,	/* wrong argument type or count */
+	ERR_DENIED,	/* command not allowed */
+	__ERR_MAX
+} result_error_t;
 
 typedef struct result_t {
 	int result;
-	bool error;
-	bool cycle;
+	unsigned int flags;
 } result_t;
 
 int server_init(int argc, char *argv[]);
