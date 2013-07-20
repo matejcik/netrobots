@@ -378,8 +378,8 @@ static void cycle_cannons(struct robot *r)
 			continue;
 		}
 		dist = get_distance_f(c->x, c->y, c->dx, c->dy);
-		new_x = c->x + ((double)c->dx - c->x) / dist * SHOT_SPEED;
-		new_y = c->y + ((double)c->dy - c->y) / dist * SHOT_SPEED;
+		new_x = c->x + ((double)c->dx - c->x) / dist * shot_speed;
+		new_y = c->y + ((double)c->dy - c->y) / dist * shot_speed;
 		if (coord_in(c->dx, c->x, new_x) || coord_in(c->dy, c->y, new_y)) {
 			new_x = c->dx;
 			new_y = c->dy;

@@ -22,7 +22,7 @@
 
 #define SPEED_RATIO	0.04
 #define BREAK_DISTANCE	(0.7 / SPEED_RATIO)
-#define SHOT_SPEED	(400.0 * SPEED_RATIO)
+#define DEF_SHOT_SPEED	(400.0 * SPEED_RATIO)
 #define SHOT_BLAST	25
 
 #define MAX_ROBOTS	21
@@ -63,6 +63,7 @@ extern int dead_robots;
 extern struct timeval game_start;
 extern struct timeval game_end;
 extern int save_results;
+extern double shot_speed;
 
 typedef enum game_type_t {
 	GAME_SCORE,

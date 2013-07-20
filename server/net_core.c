@@ -44,6 +44,7 @@ int sockd;
 extern int debug;
 
 int save_results = 0;
+double shot_speed = DEF_SHOT_SPEED;
 int max_robots = 0;
 int dead_robots;
 
@@ -357,6 +358,7 @@ void usage(char *prog, int retval)
 	       "\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 	       "\t-P <port>\tSpecifies port (Default: 4300)\n"
 	       "\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
+	       "\t-m <speed>\tMissiles speed (Default: 400)\n"
 	       "\t-t\tTime based game (Default: score based game)\n"
 	       "\t-s\tSave results to ./results.txt\n"
 	       "\t-d\tEnables debug mode\n", prog);
@@ -365,12 +367,12 @@ void usage(char *prog, int retval)
 
 int server_init(int argc, char *argv[])
 {
-	int retval;
+	int retval, tmp;
 
 	char *port = STD_PORT;
 	char *hostname = STD_HOSTNAME;
 
-	while ((retval = getopt(argc, argv, "dn:hH:P:c:ts")) != -1) {
+	while ((retval = getopt(argc, argv, "dn:hH:P:c:m:ts")) != -1) {
 		switch (retval) {
 		case 'c':
 			max_cycles = atoi(optarg);
@@ -386,6 +388,11 @@ int server_init(int argc, char *argv[])
 			break;
 		case 'n':
 			autostart_robots = atoi(optarg);
+			break;
+		case 'm':
+			tmp = atoi(optarg);
+			if (tmp)
+				shot_speed = (double)tmp * SPEED_RATIO;
 			break;
 		case 't':
 			game_type = GAME_TIME;
