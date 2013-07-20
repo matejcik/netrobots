@@ -203,7 +203,7 @@ int cannon(int degree, int range)
 	return get_resp_value(ret);
 }
 
-void drive (int degree, int speed)
+void drive(int degree, int speed)
 {
 	int ret;
 
@@ -211,7 +211,7 @@ void drive (int degree, int speed)
 	get_resp_value(ret);
 }
 
-int damage()
+int damage(void)
 {
 	int ret;
 
@@ -219,7 +219,7 @@ int damage()
 	return get_resp_value(ret);
 }
 
-int cycle2()
+int cycle2(void)
 {
 	int ret;
 
@@ -227,12 +227,12 @@ int cycle2()
 	return get_resp_value(ret);
 }
 
-void cycle()
+void cycle(void)
 {
 	(void)cycle2();
 }
 
-int speed()
+int speed(void)
 {
 	int ret;
 
@@ -240,7 +240,7 @@ int speed()
 	return get_resp_value(ret);
 }
 
-int loc_x()
+int loc_x(void)
 {
 	int ret;
 
@@ -248,7 +248,7 @@ int loc_x()
 	return get_resp_value(ret);
 }
 
-int loc_y()
+int loc_y(void)
 {
 	int ret;
 
@@ -256,7 +256,7 @@ int loc_y()
 	return get_resp_value(ret);
 }
 
-int elapsed()
+int elapsed(void)
 {
 	int ret;
 

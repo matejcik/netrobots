@@ -23,12 +23,12 @@ void init_custom(char *img_path, int argc, char *argv[]);
 int scan(int degree, int resolution);
 int cannon(int degree, int range);
 void drive(int degree, int speed);
-void cycle();
+void cycle(void);
 
-int damage();
-int speed();
-int loc_x();
-int loc_y();
-int elapsed();
+int damage(void);
+int speed(void);
+int loc_x(void);
+int loc_y(void);
+int elapsed(void);
 
 #endif
