@@ -1,7 +1,7 @@
 ROBOTS = counter rabbit rook sniper spot
 
 CFLAGS = -g -Wuninitialized -O2 -I../lib
-LDFLAGS = -g -lm -L..
+LDFLAGS = -g -lm -L../lib
 
 .PHONY: all clean
 all: $(ROBOTS)
