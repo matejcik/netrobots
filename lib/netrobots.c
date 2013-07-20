@@ -219,17 +219,12 @@ int damage(void)
 	return get_resp_value(ret);
 }
 
-int cycle2(void)
+void cycle(void)
 {
 	int ret;
 
 	ret = sockwrite(serverfd, CYCLE, NULL);
-	return get_resp_value(ret);
-}
-
-void cycle(void)
-{
-	(void)cycle2();
+	get_resp_value(ret);
 }
 
 int speed(void)
