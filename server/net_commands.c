@@ -33,6 +33,7 @@ int cmd_loc_x(struct robot *robot, int *args);
 int cmd_loc_y(struct robot *robot, int *args);
 int cmd_damage(struct robot *robot, int *args);
 int cmd_speed(struct robot *robot, int *args);
+int cmd_elapsed(struct robot *robot, int *args);
 int cmd_drive(struct robot *robot, int *args);
 int cmd_name(struct robot *robot, char **args);
 int cmd_image(struct robot *robot, int *args);
@@ -49,6 +50,7 @@ cmd_t cmds[] = {
 	{ LOC_Y,  CMD_TYPE_NONE, 0, (cmd_f)cmd_loc_y,  0 },
 	{ DAMAGE, CMD_TYPE_NONE, 0, (cmd_f)cmd_damage, 0 },
 	{ SPEED,  CMD_TYPE_NONE, 0, (cmd_f)cmd_speed,  0 },
+	{ ELAPSED,CMD_TYPE_NONE, 0, (cmd_f)cmd_elapsed,0 },
 	{ NAME,   CMD_TYPE_STR,  1, (cmd_f)cmd_name,   CMD_FLAG_PRESTART },
 	{ IMAGE,  CMD_TYPE_INT,  1, (cmd_f)cmd_image,  CMD_FLAG_PRESTART | CMD_FLAG_DATA },
 };
@@ -93,6 +95,11 @@ int cmd_damage(struct robot *robot, int *args)
 int cmd_speed(struct robot *robot, int *args)
 {
 	return speed(robot);
+}
+
+int cmd_elapsed(struct robot *robot, int *args)
+{
+	return current_cycles;
 }
 
 int cmd_drive(struct robot *robot, int *args)

@@ -256,6 +256,14 @@ int loc_y()
 	return get_resp_value(ret);
 }
 
+int elapsed()
+{
+	int ret;
+
+	ret = sockwrite(serverfd, ELAPSED, NULL);
+	return get_resp_value(ret);
+}
+
 void set_name(char *name)
 {
 	int ret;

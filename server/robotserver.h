@@ -63,6 +63,7 @@ extern struct robot **ranking;
 extern int dead_robots;
 extern struct timeval game_start;
 extern struct timeval game_end;
+extern int current_cycles;
 extern int save_results;
 extern double shot_speed;
 extern int shot_reload;

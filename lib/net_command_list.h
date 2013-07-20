@@ -7,6 +7,7 @@
 #define LOC_Y	'y'
 #define DAMAGE	'l'
 #define SPEED	'v'
+#define ELAPSED	'e'
 #define NAME	'n'
 #define IMAGE	'i'
 

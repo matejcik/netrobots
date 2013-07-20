@@ -40,7 +40,8 @@ class Robot(object):
 		x	current x coordinate
 		y	current y coordinate
 		speed	current speed
-		damage	current damage"""
+		damage	current damage
+		elapsed	elapsed cycles"""
 
 	def __init__(self, host=None, port=None, img_path=None, init=True):
 		"""__init__([host], [port], [img_path])
@@ -203,7 +204,8 @@ class Robot(object):
 		self.custom_command(START)
 	
 	def __getattr__(self, name):
-		cmds = { 'x': LOC_X, 'y': LOC_Y, 'speed': SPEED, 'damage': DAMAGE }
+		cmds = { 'x': LOC_X, 'y': LOC_Y, 'speed': SPEED, 'damage': DAMAGE,
+			 'elapsed': ELAPSED }
 		if not name in cmds:
 			raise AttributeError()
 		return self.__custom_command_check(1, cmds[name])
