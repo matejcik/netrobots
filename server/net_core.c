@@ -56,6 +56,9 @@ game_type_t game_type = GAME_SCORE;
 int max_cycles;
 int current_cycles = 0;
 
+int max_post_cycles = 0;
+int current_post_cycles = 0;
+
 struct robot **all_robots;
 struct robot **ranking;
 
@@ -357,25 +360,31 @@ int server_cycle(event_t event)
 
 	if (current_cycles >= max_cycles) {
 		ndprintf(stdout, "[GAME] Ended - Draw!\n");
-		gettimeofday(&game_end, NULL);
-		return 1;
+		res = 1;
+	} else {
+		current_cycles++;
+		charge_timer();
+		cycle();
+		update_display(0);
+		res = process_robots(1);
 	}
-	current_cycles++;
-	charge_timer();
-	cycle();
-	update_display(0);
-	res = process_robots(1);
-	if (res)
+	if (res) {
 		gettimeofday(&game_end, NULL);
+		complete_ranking();
+	}
 	return res;
 }
 
-void server_finished_cycle(event_t event)
+int server_finished_cycle(event_t event)
 {
+	if (max_post_cycles && current_post_cycles >= max_post_cycles)
+		return 1;
+	current_post_cycles++;
 	charge_timer();
 	cycle();
 	update_display(1);
 	process_robots(2);
+	return 0;
 }
 
 void usage(char *prog, int retval)
@@ -385,6 +394,7 @@ void usage(char *prog, int retval)
 	       "\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 	       "\t-P <port>\tSpecifies port (Default: 4300)\n"
 	       "\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
+	       "\t-C <cycles>\tLimit results display time (Default: 0 = unlimited)\n"
 	       "\t-m <speed>\tMissiles speed, 0 for laser game (Default: 400)\n"
 	       "\t-t\tTime based game (Default: score based game)\n"
 	       "\t-s\tSave results to ./results.txt\n"
@@ -399,10 +409,13 @@ int server_init(int argc, char *argv[])
 	char *port = STD_PORT;
 	char *hostname = STD_HOSTNAME;
 
-	while ((retval = getopt(argc, argv, "dn:hH:P:c:m:ts")) != -1) {
+	while ((retval = getopt(argc, argv, "dn:hH:P:c:C:m:ts")) != -1) {
 		switch (retval) {
 		case 'c':
 			max_cycles = atoi(optarg);
+			break;
+		case 'C':
+			max_post_cycles = atoi(optarg);
 			break;
 		case 'H':
 			hostname = optarg;

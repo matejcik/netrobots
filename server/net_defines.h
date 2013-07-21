@@ -65,7 +65,7 @@ typedef struct result_t {
 int server_init(int argc, char *argv[]);
 int server_process_connections(event_t event);
 int server_cycle(event_t event);
-void server_finished_cycle(event_t event);
+int server_finished_cycle(event_t event);
 
 result_t execute_cmd(struct robot *robot, char *input, int phase);
 

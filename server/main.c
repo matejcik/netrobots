@@ -25,11 +25,19 @@
 #include "field.h"
 #include "net_defines.h"
 
+typedef int (*callback_t)(event_t);
+static callback_t phase_callback[] = {
+	server_process_connections,
+	server_cycle,
+	server_finished_cycle,
+};
+#define PHASE_COUNT	(sizeof(phase_callback) / sizeof(callback_t))
+
 int main(int argc, char **argv)
 {
 	unsigned int i = 0;
 	struct timeval start_ticks, end_ticks;
-	int phase = 0;
+	unsigned int phase = 0;
 	event_t event;
 
 	srandom(time(NULL) + getpid());
@@ -39,31 +47,14 @@ int main(int argc, char **argv)
 	gettimeofday(&start_ticks, NULL);
 
 	/* enter event-loop */
-	for (;;) {
+	while (phase < PHASE_COUNT) {
 		i++;
 		event = process_cairo();
 		if (event == EVENT_QUIT)
 			break;
 
-		/* Call functions here to parse event and render on cairo_context...  */
-		switch (phase) {
-		case 0:
-			/* connecting */
-			if (server_process_connections(event))
-				phase++;
-			break;
-		case 1:
-			/* game in progress */
-			if (server_cycle(event)) {
-				complete_ranking();
-				phase++;
-			}
-			break;
-		case 2:
-			/* display ranking */
-			server_finished_cycle(event);
-			break;
-		}
+		if (phase_callback[phase](event))
+			phase++;
 	}
 
 	gettimeofday(&end_ticks, NULL);
