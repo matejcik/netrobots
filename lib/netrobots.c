@@ -148,14 +148,27 @@ static int client_init(char *remotehost, char *port)
 
 static void set_default_name(char *argv0)
 {
-	char *start;
+	char *start, *name;
+	int len;
 
 	start = strrchr(argv0, '/');
 	if (!start)
 		start = argv0;
 	else
 		start++;
-	set_name(start);
+	len = strlen(start);
+	name = malloc(len);
+	if (!name)
+		return;
+	strcpy(name, start);
+	if (*name)
+		*name = toupper(*name);
+	start = strrchr(name, '.');
+	if (start && (len - (start - name)) <= 4)
+		/* delete extension if there is any */
+		*start = '\0';
+	set_name(name);
+	free(name);
 }
 
 void usage(char *prog, int retval)
