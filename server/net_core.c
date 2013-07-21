@@ -143,7 +143,7 @@ void close_kill_robot(struct pollfd *pfd, struct robot *robot)
 
 int process_robots(int phase)
 {
-	int i, ret, rfd;
+	int i, ret;
 	struct pollfd *pfd;
 	result_t result;
 	char buf[STD_BUF];
@@ -155,12 +155,9 @@ int process_robots(int phase)
 
 	do {
 		to_talk = 0;
-		rfd = -1;
 		for (i = 0; i < max_robots; i++) {
-			if (fds[i].fd != -1) {
+			if (fds[i].fd != -1)
 				to_talk++;
-				rfd = fds[i].fd;
-			}
 		}
 
 		if (phase == 1) {
