@@ -79,7 +79,7 @@ extern game_type_t game_type;
 
 int scan(struct robot *r, int degree, int resolution);
 int cannon(struct robot *r, int degree, int range);
-void drive(struct robot *r, int degree, int speed);
+int drive(struct robot *r, int degree, int speed);
 void cycle(void);
 int loc_x(struct robot *r);
 int loc_y(struct robot *r);

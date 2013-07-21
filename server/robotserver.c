@@ -262,6 +262,9 @@ int cannon(struct robot *r, int degree, int range)
 	int freeSlot;
 	int x, y;
 
+	if (range < 0)
+		return -1;
+
 	/* If the cannon is not reloading, meaning it's ready the robottino
 	 * shoots otherwise break */
 	for (freeSlot = 0; freeSlot < 2; freeSlot++)
@@ -297,8 +300,11 @@ int cannon(struct robot *r, int degree, int range)
 	return 1;
 }
 
-void drive(struct robot *r, int degree, int speed)
+int drive(struct robot *r, int degree, int speed)
 {
+	if (speed < 0 || speed > 100)
+		return -1;
+
 	degree = standardize_degree(degree);
 	if (r->speed > 50)
 		degree = r->degree;
@@ -308,6 +314,7 @@ void drive(struct robot *r, int degree, int speed)
 	r->target_speed = speed;
 	r->degree = degree;
 	r->break_distance = BREAK_DISTANCE;
+	return 1;
 }
 
 #define TOL	(sin(M_PI / 360))

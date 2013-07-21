@@ -118,8 +118,7 @@ int cmd_get_all(struct robot *robot, int *args)
 
 int cmd_drive(struct robot *robot, int *args)
 {
-	drive(robot, args[0], args[1]);
-	return 1;
+	return drive(robot, args[0], args[1]);
 }
 
 int cmd_name(struct robot *robot, char **args)
