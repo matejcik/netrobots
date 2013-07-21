@@ -56,8 +56,8 @@ game_type_t game_type = GAME_SCORE;
 int max_cycles;
 int current_cycles = 0;
 
-int max_post_cycles = 0;
-int current_post_cycles = 0;
+int max_passive_cycles = 0;
+int current_passive_cycles = 0;
 
 struct robot **all_robots;
 struct robot **ranking;
@@ -310,6 +310,10 @@ int server_process_connections(event_t event)
 	socklen_t addrlen = sizeof(addr);
 	int res = 0;
 
+	if (max_passive_cycles && current_passive_cycles >= max_passive_cycles)
+		ndprintf_die(stdout, "[INFO] Terminated on client connection timeout\n");
+	current_passive_cycles++;
+
 	charge_timer();
 	update_display(0);
 	process_robots(0);
@@ -347,6 +351,7 @@ int server_process_connections(event_t event)
 		}
 
 		gettimeofday(&game_start, NULL);
+		current_passive_cycles = 0;
 	}
 	return res;
 }
@@ -374,9 +379,9 @@ int server_cycle(event_t event)
 
 int server_finished_cycle(event_t event)
 {
-	if (max_post_cycles && current_post_cycles >= max_post_cycles)
+	if (max_passive_cycles && current_passive_cycles >= max_passive_cycles)
 		return 1;
-	current_post_cycles++;
+	current_passive_cycles++;
 	charge_timer();
 	cycle();
 	update_display(1);
@@ -391,7 +396,7 @@ void usage(char *prog, int retval)
 	       "\t-H <hostname>\tSpecifies hostname (Default: 127.0.0.1)\n"
 	       "\t-P <port>\tSpecifies port (Default: 4300)\n"
 	       "\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
-	       "\t-C <cycles>\tLimit results display time (Default: 0 = unlimited)\n"
+	       "\t-C <cycles>\tLimit init and results time (Default: 0 = unlimited)\n"
 	       "\t-m <speed>\tMissiles speed, 0 for laser game (Default: 400)\n"
 	       "\t-t\tTime based game (Default: score based game)\n"
 	       "\t-s\tSave results to ./results.txt\n"
@@ -412,7 +417,7 @@ int server_init(int argc, char *argv[])
 			max_cycles = atoi(optarg);
 			break;
 		case 'C':
-			max_post_cycles = atoi(optarg);
+			max_passive_cycles = atoi(optarg);
 			break;
 		case 'H':
 			hostname = optarg;
