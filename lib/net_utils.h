@@ -36,6 +36,7 @@ void ndprintf(FILE *fd, char *fmt, ...);
 void ndprintf_die(FILE *fd, char *fmt, ...);
 void printf_die(FILE *fd, char *fmt, int err, ...);
 int sockwrite(int fd, char command, char *fmt, ...);
+int sockwrite_ints(int fd, char command, int *data, int count);
 int str_isnumber(char *str);
 
 #endif

@@ -118,6 +118,23 @@ int sockwrite(int fd, char command, char *fmt, ...)
 	return ret;
 }
 
+int sockwrite_ints(int fd, char command, int *data, int count)
+{
+	char *str;
+	int ret, pos, i;
+
+	str = malloc(STD_BUF);
+	if (!str)
+		return -1;
+	str[0] = command;
+	pos = 1;
+	for (i = 0; i < count && pos < STD_BUF; i++)
+		pos += snprintf(str + pos, STD_BUF - pos, " %d", data[i]);
+	ret = write(fd, str, strlen(str));
+	free(str);
+	return ret;
+}
+
 int str_isnumber(char *str)
 {
 	const int len = strlen(str);

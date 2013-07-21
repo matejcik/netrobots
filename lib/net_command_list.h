@@ -8,6 +8,7 @@
 #define DAMAGE	'l'
 #define SPEED	'v'
 #define ELAPSED	'e'
+#define GET_ALL	'a'
 #define NAME	'n'
 #define IMAGE	'i'
 

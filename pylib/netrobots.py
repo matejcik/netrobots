@@ -14,6 +14,7 @@ LOC_Y	= 'y'
 DAMAGE	= 'l'
 SPEED	= 'v'
 ELAPSED	= 'e'
+GET_ALL	= 'a'
 NAME	= 'n'
 IMAGE	= 'i'
 

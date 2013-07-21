@@ -233,6 +233,12 @@ int process_robots(int phase)
 
 			if (result.flags & RES_FLAG_CYCLE)
 				pfd->events = 0;
+
+			if (result.flags & RES_FLAG_MULTI) {
+				sockwrite_ints(pfd->fd, OK, multivalue, result.result);
+				continue;
+			}
+
 			if (result.flags & RES_FLAG_DATA) {
 				assert(!robot->data);
 				robot->data_len = result.result;

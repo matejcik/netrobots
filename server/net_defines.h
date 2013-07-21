@@ -32,6 +32,7 @@ typedef enum cmd_type_t {
 #define CMD_FLAG_CYCLE		(1 << 0)
 #define CMD_FLAG_PRESTART	(1 << 1)
 #define CMD_FLAG_DATA		(1 << 2)
+#define CMD_FLAG_MULTI		(1 << 3)
 
 typedef int (*cmd_f)(struct robot *robot, void *args);
 
@@ -47,6 +48,7 @@ typedef struct cmd_t {
 #define RES_FLAG_CYCLE		(1 << 1)
 #define RES_FLAG_DATA		(1 << 2)
 #define RES_FLAG_BLOCK		(1 << 3)
+#define RES_FLAG_MULTI		(1 << 4)
 
 typedef enum result_error_t {
 	ERR_ERR,	/* unspecified error */
@@ -61,6 +63,8 @@ typedef struct result_t {
 	int result;
 	unsigned int flags;
 } result_t;
+
+extern int multivalue[];
 
 int server_init(int argc, char *argv[]);
 int server_process_connections(event_t event);

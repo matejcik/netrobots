@@ -25,6 +25,8 @@
 #include "net_utils.h"
 #include "net_defines.h"
 
+int multivalue[5];
+
 int cmd_start(struct robot *robot, int *args);
 int cmd_cycle(struct robot *robot, int *args);
 int cmd_cannon(struct robot *robot, int *args);
@@ -34,6 +36,7 @@ int cmd_loc_y(struct robot *robot, int *args);
 int cmd_damage(struct robot *robot, int *args);
 int cmd_speed(struct robot *robot, int *args);
 int cmd_elapsed(struct robot *robot, int *args);
+int cmd_get_all(struct robot *robot, int *args);
 int cmd_drive(struct robot *robot, int *args);
 int cmd_name(struct robot *robot, char **args);
 int cmd_image(struct robot *robot, int *args);
@@ -51,6 +54,7 @@ cmd_t cmds[] = {
 	{ DAMAGE, CMD_TYPE_NONE, 0, (cmd_f)cmd_damage, 0 },
 	{ SPEED,  CMD_TYPE_NONE, 0, (cmd_f)cmd_speed,  0 },
 	{ ELAPSED,CMD_TYPE_NONE, 0, (cmd_f)cmd_elapsed,0 },
+	{ GET_ALL,CMD_TYPE_NONE, 0, (cmd_f)cmd_get_all,CMD_FLAG_MULTI },
 	{ NAME,   CMD_TYPE_STR,  1, (cmd_f)cmd_name,   CMD_FLAG_PRESTART },
 	{ IMAGE,  CMD_TYPE_INT,  1, (cmd_f)cmd_image,  CMD_FLAG_PRESTART | CMD_FLAG_DATA },
 };
@@ -100,6 +104,16 @@ int cmd_speed(struct robot *robot, int *args)
 int cmd_elapsed(struct robot *robot, int *args)
 {
 	return current_cycles;
+}
+
+int cmd_get_all(struct robot *robot, int *args)
+{
+	multivalue[0] = loc_x(robot);
+	multivalue[1] = loc_y(robot);
+	multivalue[2] = damage(robot);
+	multivalue[3] = speed(robot);
+	multivalue[4] = current_cycles;
+	return 5;
 }
 
 int cmd_drive(struct robot *robot, int *args)
@@ -194,5 +208,7 @@ result_t execute_cmd(struct robot *robot, char *input, int phase)
 		res.flags |= RES_FLAG_CYCLE;
 	if (cmd->flags & CMD_FLAG_DATA)
 		res.flags |= RES_FLAG_DATA;
+	if (cmd->flags & CMD_FLAG_MULTI)
+		res.flags |= RES_FLAG_MULTI;
 	return res;
 }
