@@ -203,6 +203,16 @@ class Robot(object):
 		except IndexError:
 			raise RobotError('Invalid response received')
 	
+	def get_all(self):
+		"""get_all()
+
+		Reads the complete robot status using single message
+		exchange with the server. Useful for better robot
+		performance. Returns a dictionary."""
+
+		data = self.custom_command(GET_ALL)
+		return dict(zip(('x', 'y', 'damage', 'speed', 'elapsed'), data))
+
 	def start(self):
 		"""start()
 

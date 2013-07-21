@@ -307,6 +307,27 @@ int elapsed(void)
 	return get_resp_value(ret);
 }
 
+void get_all(int *_loc_x, int *_loc_y, int *_damage, int *_speed, int *_elapsed)
+{
+	int ret, count;
+	int values[5];
+
+	ret = sockwrite(serverfd, GET_ALL, NULL);
+	count = get_resp(values, 5);
+	if (ret == -1 || count != 5)
+		printf_die(stdout, "Server dead or you have been killed\n", 1);
+	if (_loc_x)
+		*_loc_x = values[0];
+	if (_loc_y)
+		*_loc_y = values[1];
+	if (_damage)
+		*_damage = values[2];
+	if (_speed)
+		*_speed = values[3];
+	if (_elapsed)
+		*_elapsed= values[4];
+}
+
 void set_name(char *name)
 {
 	int ret;

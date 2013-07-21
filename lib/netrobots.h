@@ -30,6 +30,7 @@ int speed(void);
 int loc_x(void);
 int loc_y(void);
 int elapsed(void);
+void get_all(int *_loc_x, int *_loc_y, int *_damage, int *_speed, int *_elapsed);
 
 /* server config */
 extern int game_type;
