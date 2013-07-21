@@ -300,7 +300,7 @@ int cannon(struct robot *r, int degree, int range)
 void drive(struct robot *r, int degree, int speed)
 {
 	degree = standardize_degree(degree);
-	if (r->speed >= 50)
+	if (r->speed > 50)
 		degree = r->degree;
 
 	if (speed > r->target_speed)
