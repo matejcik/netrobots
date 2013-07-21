@@ -1,0 +1,146 @@
+<h1>Netrobots</h1>
+
+<h2>Popis protokolu</h2>
+
+<p>
+Hra se hraje po protokolu TCP, roboti se pøipojují na server. Standardní
+port je 4300.
+
+<h3>Formát zpráv</h3>
+
+<p>
+Zprávy vymìòované mezi serverem a klientem (v obou smìrech) se skládají
+z <i>tokenù</i> oddìlených mezerami nebo jinými bílými znaky. Celá zpráva
+není ukonèena ¾ádným speciálním znakem. Maximální délka zprávy je 64 bytù.
+
+<p>
+Token je posloupnost znakù, které nejsou bílé.
+
+<p>
+První token ka¾dé zprávy je <i>pøíkaz</i>. Pøíkaz je povinnì jeden ASCII
+znak a udává typ zprávy. Dal¹í tokeny jsou <i>parametry</i>.
+
+<p>
+Numerické parametry (napø. úhel) jsou kódovány jako ASCII dekadický zápis
+èísla. Záporná èísla zaèínají znakem mínus.
+
+<h3>Pøíkazy</h3>
+
+<p>
+Pøíkazy se li¹í dle smìru komunikace. Velká a malá písmena se rozli¹ují.
+
+<h4>Pøíkazy klient&rarr;server</h4>
+
+<table border="1">
+<tr><th>pøíkaz</th><th>název</th><th>poèet parametrù</th><th>poèet parametrù v odpovìdi</th></tr>
+<tr><td>g</td><td>start</td>  <td>0</td><td>0</td></tr>
+<tr><td>c</td><td>cycle</td>  <td>0</td><td>1</td></tr>
+<tr><td>f</td><td>cannon</td> <td>2</td><td>1</td></tr>
+<tr><td>s</td><td>scan</td>   <td>2</td><td>1</td></tr>
+<tr><td>d</td><td>drive</td>  <td>2</td><td>0</td></tr>
+<tr><td>x</td><td>loc_x</td>  <td>0</td><td>1</td></tr>
+<tr><td>y</td><td>loc_y</td>  <td>0</td><td>1</td></tr>
+<tr><td>l</td><td>damage</td> <td>0</td><td>1</td></tr>
+<tr><td>v</td><td>speed</td>  <td>0</td><td>1</td></tr>
+<tr><td>e</td><td>elapsed</td><td>0</td><td>1</td></tr>
+<tr><td>a</td><td>get_all</td><td>0</td><td>5</td></tr>
+<tr><td>n</td><td>name</td>   <td>n</td><td>0</td></tr>
+<tr><td>i</td><td>image</td>  <td>1</td><td>0</td></tr>
+</table>
+
+Pozn.: klient musí být pøipraven na to, ¾e i u pøíkazù s nulovým poètem
+parametrù v odpovìdi server v odpovìdi jeden parametr po¹le. Tento parametr
+klient musí ignorovat.
+
+<h4>Pøíkazy server&rarr;klient</h4>
+
+<table border="1">
+<tr><th>pøíkaz</th><th>název</th></tr>
+<tr><td>!</td><td>error</td></tr>
+<tr><td>k</td><td>ok</td></tr>
+<tr><td>d</td><td>dead</td></tr>
+</table>
+
+Pozn.: u pøíkazu "ok" vrací server parametry v poètu podle tabulky vý¹e.
+
+<h3>Výmìna zpráv</h3>
+
+<p>
+Po pøipojení po¹le server klientovi zprávu s pøíkazem "ok" a tøemi
+numerickými parametry. Ty udávají typ hry (0 = hra na skóre, 1 = hra na èas
+pøe¾ití), rychlost støel (0 znamená Laser Game) a maximální poèet cyklù,
+které hra pobì¾í. Pøípadné dal¹í parametry musí být klient pøipraven
+ignorovat.
+
+<p>
+Dále ji¾ probíhá komunikace v¾dy tak, ¾e klient po¹le zprávu serveru, ten ji
+zpracuje a odpoví. Odpovìï obsahuje informaci, zda po¾adovaná akce probìhla
+v poøádku (je udaná typem <i>pøíkazu</i>) a dále pøípadné <i>parametry</i>
+obsahující po¾adované informace.
+
+<p>
+Odpoví-li server pøíkazem "error", obsahují dal¹í tokeny jednotlivá slova
+chybového hlá¹ení. V pøípadì obdr¾ení chyby by se mìl klient ukonèit.
+
+<p>
+Speciálním pøíkazem je "dead". Ten po¹le server v okam¾iku, kdy klientùv
+robot dosáhl 100% po¹kození. Parametry je mo¾no ignorovat (obsahují text
+"You're dead" nebo podobný). "dead" je jediný pøíkaz, který server posílá
+sám od sebe, tj. ne jako reakci na jinou klientovu zprávu. Toto speciální
+chování je v¹ak na vìt¹inì operaèních systémù mo¾né ignorovat, a zprávu
+chápat jako reakci na pøí¹tí klientem vyslaný pøíkaz.
+
+<h3>Fáze hry a povolené pøíkazy</h3>
+
+<p>
+Hra má dvì fáze, pøedstartovní a samotnou hru.
+
+<p>
+V pøedstartovní fázi je mo¾né pou¾ívat jen omezenou mno¾inu pøíkazù,
+konkrétnì "start", "cycle", "name" a "image".
+
+<p>
+Bìhem samotné hry je mo¾no pou¾ívat v¹echny pøíkazy.
+
+<h3>Pøíkazy podrobnì</h3>
+
+<p>
+Pøíkazy, jejich¾ chování není nièím zvlá¹tní, zde nejsou uvedeny. Pro význam
+jednotlivých pøíkazù viz dokumentace hry.
+
+<h4>start</h4>
+
+<p>
+V pøedstartovní fázi zablokuje klienta do zaèátku hry, tedy odpovìï na tuto
+zprávu po¹le server v okam¾iku, kdy je zahájena hra. Do té doby s klientem
+nekomunikuje. Bìhem samotné hry server na tento pøíkaz odesílá odpovìï
+okam¾itì, pøíkaz je tedy noop.
+
+<h4>cycle</h4>
+
+<p>
+Vrací 0 v pøedstartovní fázi, 1 pøi samotné høe.
+
+<h4>get_all</h4>
+
+<p>
+Poøadí vrácených hodnot je loc_x, loc_y, damage, speed, elapsed. Pøípadné
+dal¹í parametry musí být klient pøipraven ignorovat.
+
+<h4>name</h4>
+
+<p>
+Nastaví jméno robota. Po¾adované kódování je UTF8. Parametry za tímto
+pøíkazem server nerozdìluje na tokeny, ale chápe je jako jediný textový
+parametr a¾ do konce zprávy.
+
+<h4>image</h4>
+
+<p>
+Jako jediný numerický parametr je uvedena velikost obrázku v bytech. Po
+odpovìdi "ok" od serveru po¹le klient binárnì po¾adovaný obrázek (bez
+jakéhokoliv pøíkazu, jen binární data). Velikost odeslaných dat musí pøesnì
+odpovídat ohlá¹ené velikosti v pøedchozí zprávì. Pøijatá data server potvrdí
+standardní zprávou ("ok" nebo "error").
+<p>
+Jediným podporovaným formátem je PNG.

@@ -1,0 +1,278 @@
+<h1>Netrobots</h1>
+
+<h2>Herní prostor</h2>
+
+<p>
+Herní plocha je ètverec 1000 krát 1000 metrù. Tuto plochu obepíná zeï,
+robot, který vrazí do zdi, utrpí po¹kození.
+
+<p>
+Levý dolní roh plochy má souøadnice x&nbsp;=&nbsp;0, y&nbsp;=&nbsp;0, pravý
+horní roh má souøadnice x&nbsp;=&nbsp;999, y&nbsp;=&nbsp;999.
+
+<p>
+Úhel 0&deg; odpovídá východnímu smìru (vpravo), 90&deg; je jih (dolù),
+180&deg; je západ, 270&deg; je sever. Viz obrázek:
+<pre>
+     225   270   315
+         \  |  / 
+          \ | /
+    180 --- x --- 0
+          / | \
+         /  |  \ 
+     135    90   45
+</pre>
+
+<h2>Útoèné prostøedky</h2>
+
+<p>
+Robot má k dispozici dìlo a radar. Dìlo má dostøel 700 metrù. Mno¾ství støeliva
+není nijak omezeno, ale nabíjení zbranì chvíli trvá; ka¾dý robot mù¾e mít ve
+vzduchu pouze dvì støely najednou. Dìlo je umístìno ve støelecké vì¾i, která se
+otáèí nezávisle na natoèení robota.
+
+<p>
+Radar je optické zaøízení, které umo¾òuje sken v libovolném smìru na pøítomnost
+jiných robotù. Radar má nastavitelný rozptyl od 0 do &plusmn;10&nbsp;metrù,
+který umo¾òuje rychlé proskenování herní plochy v nízkém rozli¹ení, a pak
+pou¾ití nízkého rozptylu k pøesné lokaci protivníka.
+
+<h2>Obranné prostøedy</h2>
+
+<p>
+Jediné obranné prostøedky, které má robot k dispozici, je jeho motor
+a stavové registry. Robot mù¾e jet v libovolném smìru s nastavitelnou
+rychlostí 0 a¾ 100&nbsp;%. Rychlost 0 motor vypíná, ale robot se je¹tì
+chvíli pohybuje setrvaèností. Zmìna smìru je mo¾ná pouze tehdy, kdy¾ robot
+jede rychlostí 50&nbsp;% nebo ménì.
+
+<p>
+Robot má k dispozici nìkolik stavových registrù, které ho informují o jeho
+aktuálním po¹kození, jeho souøadnicích na herní plo¹e nebo jeho aktuální
+rychlosti.
+
+<h2>Vyøazování soupeøù</h2>
+
+<p>
+Robot je prohlá¹en za mrtvého v okam¾iku, kdy jeho po¹kození dosáhne
+100&nbsp;%. Po¹kození je zpùsobeno ve vý¹i:
+
+<dl>
+<dt>2&nbsp;%</dt>
+<dd>pøi kolizi s jiným robotem (po¹kozeni jsou oba roboti) nebo se zdí.
+Kolize rovnì¾ zpùsobí vypnutí motoru a okam¾ité zastavení (rychlost je
+0),</dd>
+<dt>3&nbsp;%</dt>
+<dd>pøi explozi støely ve vzdálenosti 20-40 metrù,</dd>
+<dt>5&nbsp;%</dt>
+<dd>pøi explozi støely ve vzdálenosti 5-20 metrù,</dd>
+<dt>10&nbsp;%</dt>
+<dd>pøi explozi støely ve vzdálenosti 0-5 metrù.</dd>
+</dl>
+
+<p>
+Po¹kození se sèítá a nejde opravit. Po¹kození se ale nijak neprojevuje na
+robotovì pohyblivosti, schopnosti støílet, apod. Znamená to, ¾e robot
+s po¹kozením 99&nbsp;% se chová stejnì jako zcela nepo¹kozený robot.
+
+<p>
+Pád nebo ukonèení programu ovládajícího robota zpùsobí okam¾itì 100%
+po¹kození.
+
+<h2>Prùbìh herního cyklu</h2>
+
+<p>
+Hra probíhá v cyklech o délce 10&nbsp;ms. V ka¾dém cyklu smí ka¾dý robot
+provést nejvý¹e jeden výkonný pøíkaz (sken, nastavení motoru, výstøel), poté
+s ním a¾ do konce cyklu server nekomunikuje. Mno¾ství ostatních pøíkazù
+(ètení stavového registru, apod.) není omezeno &ndash; resp. je omezeno jen
+tím, kolik se jich stihne poslat pøes sí». Na konci ka¾dého cyklu jsou
+aktualizovány polohy robotù a støel a zaèíná nový cyklus.
+
+<p>
+Aktuální stav èítaèe cyklù lze získat pøeètením pøíslu¹ného stavového
+registru. Délka hry (poèet cyklù hry) je omezena.
+
+<h2>Knihovní funkce</h2>
+
+<p>
+Tato èást popisuje knihovní funkce pro ovládání robota. Zabývá se knihovnou
+pro jazyk C, principy zde uvedené v¹ak platí i pro knihovny v ostatních
+jazycích.
+
+<p>
+Hlavièkový soubor knihovny, který je potøeba includovat, je
+<code>&lt;netrobots.h&gt;</code>.
+
+<h3>Inicializace</h3>
+
+<dl>
+<dt><code>void init(int argc, char *argv[]);</code></dt>
+<dd>
+Zpracuje parametry pøedané na pøíkazovém øádku, inicializuje robota a poèká
+na start hry. Nutné zavolat pøed pou¾itím ostatních knihovních funkcí.
+</dd>
+
+<dt><code>void init_custom(char *img_path, int argc, char *argv[]);</code></dt>
+<dd>
+Varianta funkce <code>init()</code>, která umo¾òuje navíc specifikovat
+umístìní obrázku, který se pou¾ije jako "skin" robota. Jediný akceptovaný
+formát obrázku je PNG.
+</dd>
+</dl>
+
+<h3>Výkonné pøíkazy</h3>
+
+<dl>
+<dt><code>int scan(int degree, int resolution);</code></dt>
+<dd>
+Provede sken v daném smìru s daným rozptylem. Smìr (parametr
+<code>degree</code>) je ve stupních, záporné úhly nebo úhly vìt¹í ne¾ 359
+<b>jsou</b> akceptovány a pøíslu¹nì pøepoèítány na základní úhly.
+Rozptyl (parametr <code>resolution</code>) smí být v rozsahu 0 a¾ 10.
+Hodnota udává rozptyl na ka¾dou stranu od daného úhlu, rozptyl 10 tedy
+znamená paprsek ¹iroký 20&deg;.
+<p>
+Vrácená hodnota je buï 0, pokud není ¾ádný robor v nastaveném rozsahu
+radaru, nebo vzdálenost k nejbli¾¹ímu zdetekovanému robotu.
+<p>
+Pøíklad:
+<pre>
+range = scan(45, 0);   /* skenuj pod úhlem 45&deg;, bez rozptylu */
+range = scan(365, 10); /* proskenuj výseè 355&deg; a¾ 15&deg; */
+</pre>
+</dd>
+
+<dt><code>int cannon(int degree, int range);</code></dt>
+<dd>
+Vypálí støelu pod zadaným úhlem (<code>degree</code>, pro úhel platí toté¾,
+co ve funkci <code>scan()</code>) do zadané vzdálenosti
+(<code>range</code>). Povolená vzdálenost je 0 a¾ 700, vìt¹í vzdálenost je
+zkrácena na 700.
+<p>
+Vrací 1 (true), pokud byla støela vypálena, nebo 0 (false), pokud se zrovna
+nabíjí.
+<p>
+Pøíklad:
+<pre>
+degree = 45;               /* úhel k otestování */
+range = scan(degree, 2);   /* je tam nìkdo? */
+if (range &gt; 0)             /* pokud ano, ... */
+    cannon(degree, range); /* ... vystøel po nìm */
+</pre>
+</dd>
+
+<dt><code>void drive(int degree, int speed);</code></dt>
+<dd>
+Zapne motor pod zadaným úhlem (<code>degree</code>, pro úhel platí toté¾, co
+ve funkci <code>scan()</code>) se zadanou rychlostí (<code>speed</code>).
+Rychlost je vyjádøena v procentech, 100 je maximum. Rychlost 0 motor vypne.
+Zmìny ve smìru (úhlu) mohou být provedeny pouze tehdy, kdy¾ aktuální
+rychlost je 50 nebo ménì, v opaèném pøípadì je parametr <code>degree</code>
+v tichosti zignorován (ale rychlost je nastavena na zadanou hodnotu).
+<p>
+Pøíklad:
+<pre>
+drive(0, 100); /* jeï na východ plnou rychlostí */
+drive(90, 0);  /* zastav */
+</pre>
+</dd>
+
+<dt><code>void cycle(void);</code></dt>
+<dd>
+Poèká na konec aktuálního cyklu. Tuto funkci mù¾ete pou¾ít napøíklad tehdy,
+pokud chcete poèkat, ne¾ dorazíte na urèené místo. Ptát se poøád dokola na
+aktuální pozici nemá smysl, v prùbìhu jednoho cyklu se poloha nemìní.
+</dd>
+</dl>
+
+<h3>Ètení stavu</h3>
+
+<dl>
+<dt><code>int damage(void);</code></dt>
+<dd>
+Vrátí aktuální hodnotu po¹kození robota v procentech, tedy 0-99 (100%
+po¹kození znamená, ¾e je robot mrtvý, a tedy u¾ nebì¾í).
+<p>
+Pøíklad:
+<pre>
+d = damage();        /* ulo¾ aktuální po¹kození */
+...                  /* nìjaká akce */
+if (d != damage()) { /* byli jsme zasa¾eni? */
+    drive(90, 100);  /* ano, zdrháme pryè */
+    d = damage();    /* ulo¾ novou hodnotu po¹kození */
+}
+</pre>
+</dd>
+
+<dt><code>int speed(void);</code></dt>
+<dd>
+Vrátí aktuální rychlost robota. Vrácená hodnota je v rozmezí 0 a¾ 100.
+V¹imnìte si, ¾e aktuální rychlost nemusí být v¾dy stejná jako rychlost
+pøedaná poslednímu pøíkazu <code>drive()</code>, proto¾e robot zrychluje
+a zpomaluje postupnì.
+<p>
+Pøíklad:
+<pre>
+drive(90, 100);     /* rozjeï se na jih */
+...
+if (speed() == 0)   /* pøi nárazu do ji¾ní zdi nebo jiného */
+    drive(270, 20); /* robota se vydej na sever */
+</dd>
+
+<dt><code>int loc_x(void); int loc_y(void);</code></dt>
+<dd>
+Vrátí aktuální x-ovou souøadnici (funkce <code>loc_x()</code>) nebo y-ovou
+souøadnici (funkce <code>loc_y()</code>). Vrácená hodnota je v rozmezí 0 a¾
+999.
+<p>
+Pøíklad:
+<pre>
+drive(180, 50);      /* vyra¾ na západ */
+while (loc_x() &gt; 20) /* dokud se nedostaneme blízko */
+    cycle();         /* ke zdi, nic nedìlej */
+drive(180, 0);       /* zaèni brzdit */
+</pre>
+</dd>
+
+<dt><code>int elapsed(void);</code></dt>
+<dd>
+Vrátí hodnotu èítaèe cyklù, tedy poøadí aktuálního cyklu od startu hry.
+</dd>
+
+<dt><code>void get_all(int *_loc_x, int *_loc_y, int *_damage, int *_speed, int *_elapsed);</code></dt>
+<dd>
+Pøeète najednou aktuální pozici, po¹kození, rychlost a poèet cyklù.
+Libovolný z parametrù smí být <code>NULL</code>. Výhodou této funkce je, ¾e
+pøeète v¹echny hodnoty výmìnou jediné zprávy se serverem. U slo¾itìj¹ích
+programù to mù¾e vést k vy¹¹ímu výkonu robota.
+</dd>
+</dl>
+
+<h3>Konfigurace hry</h3>
+
+<p>
+Tyto promìnné jsou nastaveny incializaèní funkcí a v prùbìhu hry se nemìní.
+
+<dl>
+<dt><code>int game_type;</code></dt>
+<dd>
+Zpùsob stanovení poøadí robotù. 0 znamená hru na nejvy¹¹í skóre (poèet bodù
+po¹kození zpùsobených ostatním hráèùm), 1 znamená hru na posledního
+pøe¾iv¹ího.
+</dd>
+
+<dt><code>extern int shot_speed;</code></dt>
+<dd>
+Rychlost støel v procentech maximální rychlosti robotù. Hodnota 400 tedy
+znamená, ¾e støely jsou 4&times; rychlej¹í ne¾ roboti jedoucí plnou
+rychlostí. Hodnota 0 jako¾to speciální hodnota udává, ¾e se hraje Laser
+Game, tj. støely zasahují cíl okam¾itì.
+</dd>
+
+<dt><code>extern int max_cycles;</code></dt>
+<dd>
+Poèet cyklù, na které se hra hraje. Hra mù¾e skonèit i døíve, pokud zùstane
+ji¾ jen jediný ¾ijící robot.
+</dd>
+</dl>
