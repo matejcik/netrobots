@@ -46,7 +46,7 @@ class Robot(object):
 		elapsed	elapsed cycles
 		config	server config"""
 
-	def __init__(self, host=None, port=None, img_path=None, init=True):
+	def __init__(self, host=None, port=None, img_path=None):
 		"""__init__([host], [port], [img_path])
 
 		Create new robot connected to given host:port (if not
@@ -57,11 +57,10 @@ class Robot(object):
 
 		self.__parse_options(host, port)
 		self.__connect()
-		if init:
-			self.__set_default_name()
-			if img_path:
-				self.image(img_path)
-			self.start()
+		self.__set_default_name()
+		if img_path:
+			self.image(img_path)
+		self.start()
 
 	def __parse_options(self, host, port):
 		parser = argparse.ArgumentParser()
