@@ -3,7 +3,8 @@ PREFIX ?= /usr/local
 # valid server backends: sdl, gtk
 BACKEND ?= sdl
 
-.PHONY: all server library examples clean_lib clean_server clean_examples clean install
+.PHONY: all server library examples clean_lib clean_server clean_examples clean \
+	install install_server install_examples install_all
 library:
 server: robotserver
 all: server library examples
@@ -15,7 +16,7 @@ library:
 	$(MAKE) -C lib
 
 install:
-	$(MAKE) -C lib PREFIX=$(PREFIX) install
+	$(MAKE) -C lib PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) install
 
 clean_lib:
 	$(MAKE) -C lib clean
@@ -42,6 +43,10 @@ server/%.o: server/%.c server/field.h server/net_defines.h server/robotserver.h 
 server/net_utils.o: lib/net_utils.c lib/net_utils.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+install_server: robotserver
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install robotserver $(DESTDIR)$(PREFIX)/bin
+
 clean_server:
 	rm -f robotserver $(SERVER_OBJS) server/toolkit_*.o
 
@@ -50,5 +55,17 @@ clean_server:
 examples:
 	$(MAKE) -C examples
 
+install_examples:
+	$(MAKE) -C examples PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) install
+
 clean_examples:
 	$(MAKE) -C examples clean
+
+## packaging
+
+VERSION = `git describe master | sed 's/-/./g'`
+
+tar:
+	git archive --prefix=netrobots-$(VERSION)/ master | bzip2 > netrobots-$(VERSION).tar.bz2
+
+install_all: install install_server install_examples

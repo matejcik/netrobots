@@ -15,10 +15,10 @@ libnetrobots.so: $(OBJS)
 	$(CC) $(CFLAGS) -shared -o $@ $+
 
 install: libnetrobots.so
-	install -d $(PREFIX)/lib $(PREFIX)/include
-	install libnetrobots.so $(PREFIX)/lib
-	install -m 644 netrobots.h $(PREFIX)/include
-	ldconfig
+	install -d $(DESTDIR)$(PREFIX)/lib $(DESTDIR)$(PREFIX)/include
+	install libnetrobots.so $(DESTDIR)$(PREFIX)/lib
+	install -m 644 netrobots.h $(DESTDIR)$(PREFIX)/include
+	if [ -z "$(DESTDIR)" ]; then ldconfig; fi
 
 clean:
 	rm -f libnetrobots.so $(OBJS)

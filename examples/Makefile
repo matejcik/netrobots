@@ -1,9 +1,10 @@
 ROBOTS = counter rabbit rook sniper spot
 
+PREFIX ?= /usr/local
 CFLAGS = -g -Wuninitialized -O2 -I../lib
 LDFLAGS = -g -lm -L../lib
 
-.PHONY: all clean
+.PHONY: all clean install
 all: $(ROBOTS)
 
 %: %.c
@@ -11,3 +12,7 @@ all: $(ROBOTS)
 
 clean:
 	rm -f $(ROBOTS)
+
+install: $(ROBOTS)
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install $(ROBOTS) $(DESTDIR)$(PREFIX)/bin
