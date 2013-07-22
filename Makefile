@@ -38,7 +38,7 @@ SERVER_OBJS = server/main.o server/toolkit_$(BACKEND).o \
 	server/net_core.o server/robotserver.o
 
 robotserver: $(SERVER_OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 server/%.o: server/%.c server/field.h server/net_defines.h server/robotserver.h server/toolkit.h
 server/net_utils.o: lib/net_utils.c lib/net_utils.h
 	$(CC) $(CFLAGS) -c -o $@ $<

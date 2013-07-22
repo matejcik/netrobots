@@ -2,13 +2,13 @@ ROBOTS = counter rabbit rook sniper spot
 
 PREFIX ?= /usr/local
 CFLAGS = -g -Wuninitialized -O2 -I../lib
-LDFLAGS = -g -lm -L../lib
+LDFLAGS = -g -lm -L../lib -lnetrobots
 
 .PHONY: all clean install
 all: $(ROBOTS)
 
 %: %.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< -lnetrobots
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 clean:
 	rm -f $(ROBOTS)
