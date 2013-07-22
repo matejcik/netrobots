@@ -6,8 +6,8 @@ Group:   Games
 License: GPLv2+
 URL:     https://github.com/jbenc/netrobots
 Source0: netrobots-%{version}.tar.bz2
-BuildRequires: SDL-devel
-Requires: SDL, netrobots-lib = %{version}
+BuildRequires: SDL-devel, cairo-devel
+Requires: SDL, cairo, netrobots-lib = %{version}
 
 %description
 Netrobots is a game where robots controlled by players' programs fight in
