@@ -3,6 +3,7 @@ import os.path
 import argparse
 import socket
 import re
+import errno
 
 START	= 'g'
 CYCLE	= 'c'
@@ -99,6 +100,8 @@ class Robot(object):
 		try:
 			data = self.sk.recv(STD_RESP_LEN)
 		except socket.error as msg:
+			if msg.errno == errno.ECONNRESET:
+				raise RobotError('Server terminated or you have been killed')
 			raise RobotError(str(msg))
 		if not data:
 			raise RobotGameOver('Server terminated')
@@ -106,7 +109,8 @@ class Robot(object):
 		result = data[0]
 		data = data[1:]
 		if result == DEAD:
-			raise RobotGameOver('You are dead: %s' % ' '.join(data).strip())
+			raise RobotGameOver('You have been killed. The server says: %s' %
+				' '.join(data).strip())
 		if result != OK:
 			raise RobotError('Server returned error: %s' % ' '.join(data).strip())
 		try:
@@ -126,6 +130,8 @@ class Robot(object):
 		try:
 			self.sk.send(data)
 		except socket.error as msg:
+			if msg.errno == errno.ECONNRESET:
+				raise RobotError('Server terminated or you have been killed')
 			raise RobotError(str(msg))
 		return self.__get_reply()
 	
@@ -225,3 +231,12 @@ class Robot(object):
 		if not name in cmds:
 			raise AttributeError()
 		return self.__custom_command_check(1, cmds[name])
+
+
+orig_excepthook = sys.excepthook
+def excepthook(type, value, traceback):
+	if not isinstance(value, RobotException):
+		orig_excepthook(type, value, traceback)
+		return
+	sys.stderr.write("%s\n" % str(value))
+sys.excepthook = excepthook
