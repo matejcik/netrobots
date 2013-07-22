@@ -335,6 +335,30 @@ void draw_results(cairo_t *cr)
 	cairo_restore(cr);
 }
 
+void draw_msg(cairo_t *cr, char *msg)
+{
+	cairo_text_extents_t ext;
+	int x, y;
+
+	cairo_save(cr);
+	cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+			       CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size(cr, 15);
+	cairo_text_extents(cr, msg, &ext);
+
+	x = (WIN_HEIGHT - ext.width) / 2 - 30;
+	y = (WIN_HEIGHT - ext.height) / 2 - 25;
+
+	cairo_rectangle(cr, x, y, ext.width + 60, ext.height + 50);
+	cairo_set_source_rgba(cr, 0.7, 0.7, 0.6, 0.5);
+	cairo_fill(cr);
+
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_move_to(cr, x + 30, y + 23 + ext.height);
+	cairo_show_text(cr, msg);
+	cairo_restore(cr);
+}
+
 void draw (cairo_t *cr)
 {
 	int i;
@@ -351,11 +375,19 @@ void draw (cairo_t *cr)
 	draw_stats(cr, all_robots);
 }
 
-void update_display(int finished)
+void update_display(void)
 {
 	draw(cr);
-	if (finished)
-		draw_results(cr);
+}
+
+void update_display_results(void)
+{
+	draw_results(cr);
+}
+
+void update_display_msg(char *msg)
+{
+	draw_msg(cr, msg);
 }
 
 static cairo_status_t read_data(void *closure, unsigned char *data, unsigned int length)

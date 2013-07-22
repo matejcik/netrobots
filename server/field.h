@@ -26,7 +26,9 @@ void destroy_cairo();
 event_t process_cairo(void);
 
 /* Update the canvas */
-void update_display(int finished);
+void update_display(void);
+void update_display_msg(char *msg);
+void update_display_results(void);
 
 int load_image(struct robot *robot);
 

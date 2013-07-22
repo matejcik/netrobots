@@ -321,7 +321,8 @@ int server_process_connections(event_t event)
 	current_passive_cycles++;
 
 	charge_timer();
-	update_display(0);
+	update_display();
+	update_display_msg("Waiting for connections");
 	process_robots(0);
 
 	/* TODO: This is horrible. We should just poll for an incoming
@@ -373,7 +374,7 @@ int server_cycle(event_t event)
 		current_cycles++;
 		charge_timer();
 		cycle();
-		update_display(0);
+		update_display();
 		res = process_robots(1);
 	}
 	if (res) {
@@ -390,7 +391,8 @@ int server_finished_cycle(event_t event)
 	current_passive_cycles++;
 	charge_timer();
 	cycle();
-	update_display(1);
+	update_display();
+	update_display_results();
 	process_robots(2);
 	return 0;
 }
