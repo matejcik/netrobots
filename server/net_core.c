@@ -406,6 +406,7 @@ void usage(char *prog, int retval)
 	       "\t-c <cycles>\tMaximum length of the game (Default: 10000)\n"
 	       "\t-C <cycles>\tLimit init and results time (Default: 0 = unlimited)\n"
 	       "\t-m <speed>\tMissiles speed, 0 for laser game (Default: 400)\n"
+	       "\t-l\tLaser game, shorthand for -m 0\n"
 	       "\t-t\tTime based game (Default: score based game)\n"
 	       "\t-s\tSave results to ./results.txt\n"
 	       "\t-d\tEnables debug mode\n", prog);
@@ -419,7 +420,7 @@ int server_init(int argc, char *argv[])
 	char *port = STD_PORT;
 	char *hostname = STD_HOSTNAME;
 
-	while ((retval = getopt(argc, argv, "dn:hH:P:c:C:m:ts")) != -1) {
+	while ((retval = getopt(argc, argv, "dn:hH:P:c:C:m:lts")) != -1) {
 		switch (retval) {
 		case 'c':
 			max_cycles = atoi(optarg);
@@ -441,8 +442,9 @@ int server_init(int argc, char *argv[])
 			break;
 		case 'm':
 			shot_speed = atoi(optarg) * SPEED_RATIO;
-			if (shot_speed == 0)
-				shot_reload = SHOT_RELOAD;
+			break;
+		case 'l':
+			shot_speed = 0;
 			break;
 		case 't':
 			game_type = GAME_TIME;
@@ -466,6 +468,9 @@ int server_init(int argc, char *argv[])
 
 	if (max_cycles <= 1)
 		max_cycles = STD_CYCLES;
+
+	if (shot_speed == 0)
+		shot_reload = SHOT_RELOAD;
 
 	all_robots = malloc(MAX_ROBOTS * sizeof(struct robot *));
 	ranking = malloc(MAX_ROBOTS * sizeof(struct robot *));
