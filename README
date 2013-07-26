@@ -54,6 +54,7 @@ To start a fight, use the enclosed fight script as follows:
 
 This will start the four enclosed "fighter" robots (the fifth, "rabbit",
 does not shoot at all and can be used to start training your own robots).
+Press 's' inside the battle arena window to start the fight.
 
 Tasks
 =====
