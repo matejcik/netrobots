@@ -8,5 +8,5 @@ netrobots_wrap.c: ../lib/netrobots.h netrobots.i
 	swig -I../lib/ -php -module netrobots -o $@ netrobots.i
 	sed -i 's/get_all();/return get_all();/' netrobots.php
 
-clean::
-	rm -f netrobots_wrap.c
+clean:
+	rm -f netrobots_wrap.[co] php_netrobots.h netrobots.so netrobots.php
