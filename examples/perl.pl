@@ -4,7 +4,6 @@ use feature say;
 use lib './perl';
 use Netrobots;
 
-open LOG, ">perllog";
 Netrobots::init(undef);
 my $dir = 0;
 $| = 1;

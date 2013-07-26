@@ -3,21 +3,16 @@
 
 include "./php/netrobots.php";
 
-$f = fopen("/tmp/xx", "w");
-
 #netrobots_init($argc, $argv);
 netrobots::init(1, [ "PHP" ]);
 
 $dir = 0;
 $drivedir = rand(0,360);
 $all = netrobots::get_all();
-var_dump($all);
-flush();
 list($x, $y, $damage, $speed, $elapsed) = netrobots::get_all();
 netrobots::drive($drivedir, 100);
 while ($damage < 100) {
   list($x, $y, $damage, $speed, $elapsed) = netrobots::get_all();
-  fprintf($f, "%d %d\n", $x, $y);
   if ($speed == 100 && ($x < 50 || $x > 950 || $y < 50 || $y > 950))
     netrobots::drive(0,0);
   
