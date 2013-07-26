@@ -14,12 +14,14 @@ clean: clean_server clean_lib clean_examples
 
 library:
 	$(MAKE) -C lib
+	$(MAKE) -C perl
 
 install:
 	$(MAKE) -C lib PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) install
 
 clean_lib:
 	$(MAKE) -C lib clean
+	$(MAKE) -C perl clean
 
 ## server
 
