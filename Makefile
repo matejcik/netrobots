@@ -26,9 +26,11 @@ clean_lib:
 
 bindings: library
 	$(MAKE) -C perl
+	$(MAKE) -C php
 
 clean_bindings:
 	$(MAKE) -C perl clean
+	$(MAKE) -C php clean
 
 ## server
 

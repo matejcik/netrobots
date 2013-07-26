@@ -180,7 +180,7 @@ void usage(char *prog, int retval)
 	exit(retval);
 }
 
-void init_custom(char *img_path, int argc, char *argv[])
+void init_custom(char *img_path, int argc, char **argv)
 {
 	int retval;
 	char *remotehost = DEFAULT_REMOTEHOST;
@@ -222,7 +222,7 @@ void init_custom(char *img_path, int argc, char *argv[])
 	start();
 }
 
-void init(int argc, char *argv[])
+void init(int argc, char **argv)
 {
 	init_custom(NULL, argc, argv);
 }
