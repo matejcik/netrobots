@@ -3,24 +3,31 @@ PREFIX ?= /usr/local
 # valid server backends: sdl, gtk
 BACKEND ?= sdl
 
-.PHONY: all server library examples clean_lib clean_server clean_examples clean \
+.PHONY: all server library bindings examples \
+	clean_lib clean_bindings clean_server clean_examples clean \
 	install install_server install_examples install_all
 library:
 server: robotserver
 all: server library examples
-clean: clean_server clean_lib clean_examples
+clean: clean_server clean_lib clean_bindings clean_examples
 
 ## library
 
 library:
 	$(MAKE) -C lib
-	$(MAKE) -C perl
 
 install:
 	$(MAKE) -C lib PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) install
 
 clean_lib:
 	$(MAKE) -C lib clean
+
+## various bindings
+
+bindings: library
+	$(MAKE) -C perl
+
+clean_bindings:
 	$(MAKE) -C perl clean
 
 ## server

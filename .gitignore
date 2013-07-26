@@ -10,3 +10,5 @@ examples/spot
 tags
 TAGS
 results.txt
+perl/Netrobots.*
+perl/netrobots_wrap.*
