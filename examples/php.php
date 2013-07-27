@@ -3,8 +3,7 @@
 
 include "./php/netrobots.php";
 
-#netrobots_init($argc, $argv);
-netrobots::init(1, [ "PHP" ]);
+netrobots::init($argc, $argv);
 
 $dir = 0;
 $drivedir = rand(0,360);
@@ -35,7 +34,5 @@ while ($damage < 100) {
   if ($dist)
     netrobots::cannon($dir, $dist);
 }
-
-echo "bagr\n";
 
 ?>
