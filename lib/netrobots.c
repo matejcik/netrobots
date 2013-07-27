@@ -358,7 +358,7 @@ void set_name(char *name)
 {
 	int ret;
 
-	ret = sockwrite(serverfd, NAME, "%s", name);
+	ret = sockwrite(serverfd, NAME, "%.14s", name);
 	get_resp_value(ret);
 }
 
