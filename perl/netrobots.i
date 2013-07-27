@@ -60,7 +60,7 @@ struct list {
 
 %inline %{
 void nr_init(char *img_path, struct list *args) {
-  init_custom(img_path, args->count, args->data);
+  init_custom(img_path, args->count+1, args->data);
 }
 %}
 
