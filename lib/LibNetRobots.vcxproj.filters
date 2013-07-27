@@ -30,7 +30,7 @@
     <ClInclude Include="netrobots.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="getopt.h">
+    <ClInclude Include="getopt_win.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,7 +44,7 @@
     <ClCompile Include="netrobots.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="getopt.cpp">
+    <ClCompile Include="getopt_win.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

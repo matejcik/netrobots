@@ -80,7 +80,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="getopt.h" />
+    <ClInclude Include="getopt_win.h" />
     <ClInclude Include="netrobots.h" />
     <ClInclude Include="net_command_list.h" />
     <ClInclude Include="net_utils.h" />
@@ -97,7 +97,7 @@
     </ClCompile>
     <ClCompile Include="netrobots.c" />
     <ClCompile Include="net_utils.c" />
-    <ClCompile Include="getopt.cpp" />
+    <ClCompile Include="getopt_win.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

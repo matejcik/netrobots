@@ -20,7 +20,7 @@
 	#define _CRT_SECURE_NO_WARNINGS
 	#include <Winsock2.h>
 	#include <WS2tcpip.h>
-	#include "getopt.h"
+	#include "getopt_win.h"
 	#define write(fd, buf, len) send(fd, buf, len, 0)
 	#define read(fd, buf, len) recv(fd, buf, len, 0)
 	#define close closesocket
