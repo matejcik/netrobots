@@ -1,5 +1,5 @@
 Name:    netrobots
-Version: 0.1
+Version: 0.2
 Release: 0
 Summary: netrobots, programming game with fighting robots
 Group:   Games
