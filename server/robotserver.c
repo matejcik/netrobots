@@ -309,11 +309,15 @@ int drive(struct robot *r, int degree, int speed)
 	if (r->speed > 50)
 		degree = r->degree;
 
+	if (speed != r->target_speed) {
+		/* we're already breaking to the target_speed, do not
+		 * prolong breaking */
+		r->break_distance = BREAK_DISTANCE;
+	}
 	if (speed > r->target_speed)
 		r->speed = speed;
 	r->target_speed = speed;
 	r->degree = degree;
-	r->break_distance = BREAK_DISTANCE;
 	return 1;
 }
 
