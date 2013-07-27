@@ -178,7 +178,7 @@ static void set_default_name(char *argv0)
 	else
 		start++;
 	len = strlen(start);
-	name = malloc(len);
+	name = malloc(len + 1);
 	if (!name)
 		return;
 	strcpy(name, start);
