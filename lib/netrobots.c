@@ -172,6 +172,8 @@ static void set_default_name(char *argv0)
 
 	start = strrchr(argv0, '/');
 	if (!start)
+		start = strrchr(argv0, '\\');
+	if (!start)
 		start = argv0;
 	else
 		start++;
