@@ -14,10 +14,19 @@
  * Lesser General Public License for more details.
  */
 
+#ifdef WIN32
+	#define _CRT_SECURE_NO_WARNINGS
+	#include <Winsock2.h>
+	#include <WS2tcpip.h>
+	#define write(fd, buf, len) send(fd, buf, len, 0)
+	#define read(fd, buf, len) recv(fd, buf, len, 0)
+	#define snprintf _snprintf
+#else
+	#include <unistd.h>
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include "net_utils.h"

@@ -14,15 +14,26 @@
  * Lesser General Public License for more details.
  */
 
+#ifdef WIN32
+	#pragma comment(lib, "ws2_32.lib")
+	#define _WIN32_WINNT 0x600
+	#define _CRT_SECURE_NO_WARNINGS
+	#include <Winsock2.h>
+	#include <WS2tcpip.h>
+	#include "getopt.h"
+	#define write(fd, buf, len) send(fd, buf, len, 0)
+	#define read(fd, buf, len) recv(fd, buf, len, 0)
+	#define close closesocket
+#else
+	#include <netinet/in.h>
+	#include <sys/socket.h>
+	#include <netdb.h>
+	#include <unistd.h>
+#endif // WIN32
 #include <string.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <stdio.h>
 #include <errno.h>
-#include <netdb.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <signal.h>
 #include <ctype.h>
 #include <time.h>
@@ -114,14 +125,22 @@ static int client_init(char *remotehost, char *port)
 	struct addrinfo *ai, *runp;
 	struct addrinfo hints;
 
+#ifdef WIN32
+	WSADATA wd;
+	int err = WSAStartup(MAKEWORD(2,2), &wd);
+	fprintf(stderr, "WSA startup: %d\n", err);
+	if (err != 0)
+		printf_die(stderr, "[ERROR] windows socket init failed: %d\n", EXIT_FAILURE, err);
+#endif
+
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_flags = AI_ADDRCONFIG;
 	hints.ai_socktype = SOCK_STREAM;
 
 	ret = getaddrinfo(remotehost, port, &hints, &ai);
 	if (ret)
-		printf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s\n",
-			   EXIT_FAILURE, remotehost, port, gai_strerror(ret));
+		printf_die(stderr, "[ERROR] getaddrinfo('%s', '%s'): %s (%d)\n",
+			   EXIT_FAILURE, remotehost, port, gai_strerror(ret), ret);
 	if (!ai)
 		printf_die(stderr, "[ERROR] getaddrinfo(): no address returned\n",
 			   EXIT_FAILURE);
@@ -207,14 +226,19 @@ void init_custom(char *img_path, int argc, char **argv)
 
 	if (argc > optind)
 		usage(argv[0], EXIT_FAILURE);
-
+#ifndef WIN32
 	signal(SIGPIPE, SIG_IGN);
+#endif
 	if (client_init(remotehost, port))
 		printf_die(stderr, "Could not connect to %s:%s\n",
 			   EXIT_FAILURE, remotehost, port);
 
+#ifdef WIN32
+	srand(time(NULL) + GetCurrentProcessId());
+#else
 	srandom(time(NULL) + getpid());
 	srand(time(NULL) + getpid());
+#endif
 
 	set_default_name(argv[0]);
 	if (img_path)
