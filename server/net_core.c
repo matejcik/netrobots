@@ -48,6 +48,8 @@ int save_results = 0;
 double shot_speed = DEF_SHOT_SPEED;
 int shot_reload = 0;
 
+int arena_mode = 0;
+
 int max_robots = 0;
 int dead_robots;
 
@@ -129,6 +131,31 @@ int create_client(int fd)
 	return 1;
 }
 
+int try_accept(int allow)
+{
+	int fd;
+	struct sockaddr *addr;
+	socklen_t addrlen = sizeof(addr);
+
+	fd = accept(sockd, (struct sockaddr *) &addr, &addrlen);
+	if (fd >= 0) {
+		if (max_robots == MAX_ROBOTS || !allow) {
+			ndprintf(stdout, "[INFO] Ignoring excessive connection\n");
+			close(fd);
+		} else {
+			if (!create_client(fd))
+				sockwrite(fd, ERROR, "Internal error");
+			else {
+				sockwrite(fd, OK, "%d %d %d", game_type,
+					  (int)(shot_speed / SPEED_RATIO), max_cycles);
+				return 1;
+			}
+
+		}
+	}
+	return 0;
+}
+
 void raise_timer(int sig)
 {
 	timer = 1;
@@ -150,10 +177,13 @@ int process_robots(int phase)
 	struct robot *robot;
 	int to_talk;
 
-	for (i = 0; i < max_robots; i++)
-		fds[i].events = POLLIN | POLLOUT;
-
 	do {
+		for (i = 0; i < max_robots; i++)
+			fds[i].events = POLLIN | POLLOUT;
+
+		fds[max_robots].fd = sockd;
+		fds[max_robots].events = POLLIN;
+
 		to_talk = 0;
 		for (i = 0; i < max_robots; i++) {
 			if (fds[i].fd != -1)
@@ -165,7 +195,8 @@ int process_robots(int phase)
 				return 1;
 		}
 
-		poll(fds, max_robots, 10);
+		poll(fds, max_robots + 1, 10);
+
 		for (i = 0; i < max_robots; i++) {
 			robot = all_robots[i];
 			pfd = &fds[i];
@@ -252,6 +283,8 @@ int process_robots(int phase)
 			}
 			sockwrite(pfd->fd, OK, "%d", result.result);
 		}
+
+		if (fds[max_robots].revents) try_accept(arena_mode || phase == 0);
 	} while ((to_talk || phase != 1) && !timer);
 	return 0;
 }
@@ -294,7 +327,7 @@ void server_start(char *hostname, char *port)
 		ndprintf_die(stderr, "[ERROR] bind(): %s\n", strerror(errno));
 	if (listen(sockd, MAX_ROBOTS))
 		ndprintf_die(stderr, "[ERROR] listen(): %s\n", strerror(errno));
-	if (!(fds = (struct pollfd *) malloc (MAX_ROBOTS * sizeof(struct pollfd))))
+	if (!(fds = (struct pollfd *) malloc ((MAX_ROBOTS + 1) * sizeof(struct pollfd))))
 		ndprintf_die(stderr, "[ERROR] Coulnd't malloc space for fds!\n");
 }
 
@@ -311,9 +344,7 @@ void charge_timer(void)
 
 int server_process_connections(event_t event)
 {
-	int fd, i;
-	struct sockaddr *addr;
-	socklen_t addrlen = sizeof(addr);
+	int i;
 	int res = 0;
 
 	if (max_passive_cycles && current_passive_cycles >= max_passive_cycles)
@@ -328,21 +359,9 @@ int server_process_connections(event_t event)
 	/* TODO: This is horrible. We should just poll for an incoming
 	 * connection, data on existing fd, a keypress, or X event, not
 	 * looping like hell. */
-	fd = accept(sockd, (struct sockaddr *) &addr, &addrlen);
-	if (fd >= 0) {
-		if (max_robots == MAX_ROBOTS) {
-			ndprintf(stdout, "[INFO] Ignoring excessive connection\n");
-			close(fd);
-		} else {
-			if (!create_client(fd))
-				sockwrite(fd, ERROR, "Internal error");
-			else
-				sockwrite(fd, OK, "%d %d %d", game_type,
-					  (int)(shot_speed / SPEED_RATIO), max_cycles);
-			if (autostart_robots > 0 && max_robots == autostart_robots)
-				res = 1;
-		}
-	}
+	//try_accept();
+	if (autostart_robots > 0 && max_robots == autostart_robots)
+		res = 1;
 
 	if (event == EVENT_START)
 		res = 1;
@@ -409,7 +428,9 @@ void usage(char *prog, int retval)
 	       "\t-l\tLaser game, shorthand for -m 0\n"
 	       "\t-t\tTime based game (Default: score based game)\n"
 	       "\t-s\tSave results to ./results.txt\n"
-	       "\t-d\tEnables debug mode\n", prog);
+	       "\t-d\tEnables debug mode\n"
+	       "\t-a\tArena mode (clients can connect anytime, dead bots respawn)\n"
+		, prog);
 	exit(retval);
 }
 
@@ -420,8 +441,11 @@ int server_init(int argc, char *argv[])
 	char *port = STD_PORT;
 	char *hostname = STD_HOSTNAME;
 
-	while ((retval = getopt(argc, argv, "dn:hH:P:c:C:m:lts")) != -1) {
+	while ((retval = getopt(argc, argv, "dn:hH:P:c:C:m:ltsa")) != -1) {
 		switch (retval) {
+		case 'a':
+			arena_mode = 1;
+			break;
 		case 'c':
 			max_cycles = atoi(optarg);
 			break;
